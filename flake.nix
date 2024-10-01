@@ -30,13 +30,17 @@
       };
 
       typstProject = {
-        typstSource = "./bericht/main.typ";
+        typstSource = "main.typ";
         fontPaths = [
-          "./bericht/template/resources/"
+          "./template/resources/"
         ];
       };
+      typstProjectWatch = {
+        typstSource = "./bericht/main.typ";
+        fontPaths = typstProject.fontPaths;
+      };
       typstProjectSrc = {
-        src = ./bericht.;
+        src = ./bericht;
         XDG_CACHE_HOME = typstPackagesCache;
       };
     in {
@@ -53,7 +57,7 @@
       packages.IP-report = tx.buildTypstProject (typstProject // typstProjectSrc);
       packages.default = self.packages.${system}.IP-report;
 
-      apps.watch = flake-utils.lib.mkApp { drv = tx.watchTypstProject typstProject; };
+      apps.watch = flake-utils.lib.mkApp { drv = tx.watchTypstProject typstProjectWatch; };
       apps.default = self.apps.${system}.watch;
     }
   );
