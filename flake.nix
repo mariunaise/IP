@@ -50,8 +50,8 @@
         ];
       };
 
-      packages.HDA-thesis = tx.buildTypstProject (typstProject // typstProjectSrc);
-      packages.default = self.packages.${system}.HDA-thesis;
+      packages.IP-report = tx.buildTypstProject (typstProject // typstProjectSrc);
+      packages.default = self.packages.${system}.IP-report;
 
       apps.watch = flake-utils.lib.mkApp { drv = tx.watchTypstProject typstProject; };
       apps.default = self.apps.${system}.watch;
