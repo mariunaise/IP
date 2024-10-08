@@ -51,6 +51,8 @@
           python312Packages.pandas
           python312Packages.glob2
           python312Packages.matplotlib
+          python312Packages.jupyter-core
+          python312Packages.ipykernel
         ];
       };
 
