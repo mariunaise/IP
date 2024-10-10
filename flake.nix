@@ -53,6 +53,10 @@
           python312Packages.matplotlib
           python312Packages.jupyter-core
           python312Packages.ipykernel
+          python312Packages.numpy
+          python312Packages.xarray
+          python312Packages.scipy
+          python312Packages.statistics
         ];
       };
 
