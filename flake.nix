@@ -59,7 +59,6 @@
           python312Packages.statistics
         ];
       };
-
       packages.IP-report = tx.buildTypstProject (typstProject // typstProjectSrc);
       packages.default = self.packages.${system}.IP-report;
 
