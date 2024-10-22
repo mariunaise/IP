@@ -1,3 +1,4 @@
 main.pdf
 .envrc
 .direnv
+__pycache__/
