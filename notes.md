@@ -39,3 +39,11 @@ Mögliche Optionen:
 + Speichere Weights für gleiche Abstände zu Grenzen ab und balance regelmäßig die Grenzen wieder aus je mehr man dazu nimmmt 
 
 Ziel: Erreiche möglichst eine Gleichvertilung der Weights an die ausgangsverteilung über Normalverteilungen
+
+## Aktuelle Punkte 
+
+Erste Bach Iteration resultiert in einer sehr ungleichmäßigen Quantisierung
+
+- Man könnte hier noch dran arbeiten und diese Verteilung gleichmäßiger basteln, ohne alternierend das zu verbessern 
+- Iterativ versuchen die Grenzen neu zu sezten, damit es dann am Ende doch einfach passt. 
+- 
