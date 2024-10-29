@@ -31,6 +31,8 @@ def enroll(lincomb_sets, bounds):
 def in_range(combination, nogozone):
     return nogozone[0] <= combination.value <= nogozone[1]
 
+
+# Didnt really work..
 def enroll_unfavour(lincomb_sets, bounds, width):
     # Generate an area arount the 0 that is considered unfavourable and take a look at what happens
     
