@@ -57,6 +57,7 @@
           python312Packages.xarray
           python312Packages.scipy
           python312Packages.statistics
+          python312Packages.imageio
         ];
       };
       packages.IP-report = tx.buildTypstProject (typstProject // typstProjectSrc);
