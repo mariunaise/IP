@@ -23,3 +23,9 @@ def lazy(m, lincombs_values):
     sigma = np.sqrt(np.std(lincombs_values))
     bounds = list(np.linspace(mu - 4*sigma, mu + 4*sigma, 2**m+1))
     return bounds
+
+def lazy_with_param(m, lincombs_values, i):
+    mu = np.average(lincombs_values)
+    sigma = np.sqrt(np.std(lincombs_values))
+    bounds = list(np.linspace(mu - i*sigma, mu + i*sigma, 2**m+1))
+    return bounds
