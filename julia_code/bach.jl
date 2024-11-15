@@ -24,4 +24,12 @@ end
 
 function greet()
     println("Hello moi")
+function enroll(bounds, values::Vector{LinearCombinationSet})
+    map(set -> begin
+        # Filter combinations with non-negative values
+        valid_combinations = filter(comb -> comb.value >= 0, set.combination)
+        # Find the combination with the value closest to any bound
+        max_dist_comb = findmax(comb -> minimum(abs(comb.value .- bounds)), valid_combinations)[2]
+        valid_combinations[max_dist_comb]
+    end, values)
 end
