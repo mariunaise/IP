@@ -15,6 +15,9 @@ function bach_enroll_first(values::Vector{LinearCombinationSet})
     # Iterate through every set of LinearCombinationSet and only choose the LinearCombination 
     # for which the absolute value of the value field is the biggest
     map(set -> begin
+        # findmax reutrns a tuple of the maximum value and its index in the collection
+        # We want to access the index of the maximum based on the lambda function
+        # that computes the absolute value of a given linear combiantion result 
         set.combination[findmax(comb -> abs(comb.value), set.combination)[2]]
     end, values) 
 end
