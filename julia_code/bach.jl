@@ -22,8 +22,6 @@ function bach_enroll_first(values::Vector{LinearCombinationSet})
     end, values) 
 end
 
-function greet()
-    println("Hello moi")
 function enroll(bounds, values::Vector{LinearCombinationSet})
     map(set -> begin
         # Filter combinations with non-negative values
