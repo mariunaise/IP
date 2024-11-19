@@ -1,4 +1,7 @@
-include("helperfunctions.jl")
+include("helperfunctions.jl") 
+
+ENV["GDK_BACKEND"] = "x11"
+using Gadfly
 
 struct bach_props
     bits::Int
@@ -15,15 +18,8 @@ struct LinearCombinationSet
     combination::Vector{LinearCombination}
 end 
 
-# Filter Bach Input only naively based on the maximum distance of some values 
-function bach_filter_naive(props::bach_props, values::Vector{LinearCombinationSet})
-    # First Iteration: Optimize the values away from the 0 to obtain the 
-    # filterd values for 1 bit quanitzation 
-    
-
-end
-
 function bach_enroll_first(values::Vector{LinearCombinationSet})
+    println("ICH BIN HIER!!!")
     # Iterate through every set of LinearCombinationSet and only choose the LinearCombination 
     # for which the absolute value of the value field is the biggest
     map(set -> begin
@@ -47,7 +43,7 @@ end
 # Starter function, optimize values away form the mean of the original distribution
 function start(values::Vector{LinearCombinationSet})
     map(set -> begin    
-        set.combination[findmax(comb -> abs(comb.value), set.combination[2])]
+        set.combination[findmax(comb -> abs(comb.value), set.combination)[2]]
     end,values)
 end
 
@@ -62,13 +58,48 @@ function optimizer(values::Vector{LinearCombinationSet}, bounds, fraction, n)
 
 end
 
-# Function takes the set of bounds generated in the step before and filteres away 
-function splitter(bounds, values::Vector{LinearCombinationSet})
-
+#  
+function splitter(bounds, values::Vector{LinearCombination})
+    result = []
+    # Iterate through every interaval of the bounds vector and create a new distribution with each interval
+    for bound in bounds 
+       push!(result, filter(comb -> comb.value <= bound, values))
+       filter!(comb -> comb.value > bound, values)
+    end
+    push!(result, values)
+    return result
 end
 
-function bach(inputs::Vector{Float64})
-    # Initialize with mean of the distribution as first bound
-    bmv = [mean(inputs)]
-    print(bmv)
+# BACH function to shape the input values for m bit quantization using a linear combination of n addends 
+function bach(inputs::Vector{Float64}, n, m)
+    # First, we will optimize away from the 0, so the start() function is called for that 
+
+    #display(plot(x=inputs, Geom.histogram(bincount=1000)))
+
+    # Initial weights are 1 and -1
+    weights = generate_n_bit_numbers_alpha(n, 1)
+
+    # Create initial linear combinations and optimize them away from the 0 
+    # linear_combinations here contians already optimized values and weights for the 1 bit quanization and can be used here if m = 1
+    linear_combinations = start(create_linearcombinations(inputs, weights, n))
+
+    # Plot the result of the first iteration here
+    display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Iteration 1")))
+
+    # Define a vector with quantizin bounds and initialize it with 0
+    quantizing_bounds = [0.0]
+
+    # During every iteration, spawn 2^(m-1) child processes optimizing their respective sub distribution with a fractional weight
+    for i in 2:m 
+        # Define the sub distributions based on the bounds vector
+        sub_distributions = splitter(quantizing_bounds, linear_combinations)
+        for distribution in sub_distributions
+            # Plot the subdistributions 
+            i = findfirst(item -> item == distribution, sub_distributions)
+            display(plot(x=collect(map(comb -> comb.value, distribution)), Geom.histogram(bincount=1000), Guide.title("Sub Distribution " * string(i))))
+            
+            # Optimize the sub distributions 
+        end
+    end
+
 end
