@@ -40,6 +40,15 @@ function enroll(bounds, values::Vector{LinearCombinationSet})
     end, values)
 end
 
+function enroll2(bounds, values::Vector{LinearCombinationSet})
+    map(set -> begin
+    #println("TYPE OF VALID COMBINATIONS" * string(typeof(set.combination)))
+        valid_combinations = set.combination
+        max_dist_comb = findmax(comb -> minimum(abs(comb.value .- bounds)), valid_combinations)[2]
+        valid_combinations[max_dist_comb]
+    end, values)
+end
+
 # Starter function, optimize values away form the mean of the original distribution
 function start(values::Vector{LinearCombinationSet})
     map(set -> begin    
