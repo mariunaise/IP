@@ -1,7 +1,10 @@
 include("helperfunctions.jl") 
 
-ENV["GDK_BACKEND"] = "x11"
+ENV["BROWSER"] = "loupe"
 using Gadfly
+using Statistics
+using Distributed
+using Base.Iterators: flatten
 
 struct bach_props
     bits::Int
