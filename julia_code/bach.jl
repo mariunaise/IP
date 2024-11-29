@@ -172,6 +172,7 @@ function bach(inputs::Vector{Float64}, n, m)
         # Define the sub distributions based on the bounds vector
         sub_distributions = splitter(quantizing_bounds, linear_combinations)
         linear_combinations = Vector{LinearCombination}()
+        shifting_index = 2 / (i + 5)
         for distribution in sub_distributions
             # Sort the quantizing_bounds vector in ascending order: 
             sort!(quantizing_bounds)
@@ -181,7 +182,8 @@ function bach(inputs::Vector{Float64}, n, m)
             display(plot(x=collect(map(comb -> comb.value, distribution)), Geom.histogram(bincount=1000), Guide.title("Sub Distribution " * string(i))))
             
             # Apply the optimizing function to each sub distribution and update linear_combinations for the next iteration
-            linear_combination = optimizer(distribution, quantizing_bounds, 0.3, n)
+            
+            linear_combination = optimizer(distribution, quantizing_bounds, shifting_index, n)
             display(plot(x=collect(map(comb -> comb.value, linear_combination)), Geom.histogram(bincount=1000), Guide.title("Result after optimizing sub distribution " * string(i))))
 
             println("bounds vector is currently: " * string(quantizing_bounds))
@@ -189,6 +191,7 @@ function bach(inputs::Vector{Float64}, n, m)
             append!(linear_combinations, linear_combination)
             
         end
+        display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Temporary Solution Number " * string(i))))
     end
 
     display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Finished Result")))

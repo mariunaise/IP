@@ -19,7 +19,7 @@ function main()
     n = 3
 
     # Define the number of bits we want to extract
-    m = 4
+    m = 3
 
     dist = Normal(mean, std_dev)
     data = rand(dist, 1000000)
