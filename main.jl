@@ -19,13 +19,18 @@ function main()
     n = 3
 
     # Define the number of bits we want to extract
-    m = 2
+    m = 4
 
     dist = Normal(mean, std_dev)
     data = rand(dist, 1000000)
 
     # Call the BACH function to do the magic
-    bach( data,n, m)
+    bach(data,n, m)
+
+    #A = -5.0
+    #B = [-4.0, 0.0, 4.0]
+    #bounds = find_interval(A, B)
+    #println("Bounds: ", bounds)
 end
 
 main()
