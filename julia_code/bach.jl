@@ -146,7 +146,7 @@ is to be found
 end
 
 # BACH function to shape the input values for m bit quantization using a linear combination of n addends 
-function bach(inputs::Vector{Float64}, n, m)
+function bach(inputs::Vector{Float64}, n, m, number_sequence)
     """
     # BREAK (Boundary Recursive Epic Adaptive (Adventure) Klustering)
     """
@@ -172,7 +172,7 @@ function bach(inputs::Vector{Float64}, n, m)
         # Define the sub distributions based on the bounds vector
         sub_distributions = splitter(quantizing_bounds, linear_combinations)
         linear_combinations = Vector{LinearCombination}()
-        shifting_index = 2 / (i + 5)
+        shifting_index = number_sequence(i)
         for distribution in sub_distributions
             # Sort the quantizing_bounds vector in ascending order: 
             sort!(quantizing_bounds)

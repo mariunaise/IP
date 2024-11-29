@@ -9,6 +9,10 @@ using Gadfly
 include("julia_code/bach.jl")
 include("julia_code/helperfunctions.jl")
 
+function number_sequence(i)
+    2 / (i + 5)
+end
+
 function main()
 
     # Define the parameters of the input probability distribution
@@ -25,7 +29,7 @@ function main()
     data = rand(dist, 1000000)
 
     # Call the BACH function to do the magic
-    bach(data,n, m)
+    bach(data,n, m, number_sequence)
 
     #A = -5.0
     #B = [-4.0, 0.0, 4.0]
