@@ -6,10 +6,10 @@ using Statistics
 using Distributed
 using Base.Iterators: flatten
 
-struct bach_props
-    bits::Int
-    bounds::Vector{Float32}
-end
+#struct bach_props
+#    bits::Int
+#    bounds::Vector{Float32}
+#end
 
 mutable struct LinearCombination
     weights::Vector{Float32}
@@ -134,19 +134,8 @@ function splitter(bounds, values::Vector{LinearCombination})
     return result
 end
 
-
-function find_bounds()
-"""
-Function to find the bounds 
-
-Takes some kind of input distribution and the amout of bits to be quanitzed and returns a vector of quantizing bounds 
-so the enrollment function does not have to caluclate the median of the sub distribtuions anymore but only a scalar factor 
-is to be found
-"""
-end
-
 # BACH function to shape the input values for m bit quantization using a linear combination of n addends 
-function bach(inputs::Vector{Float64}, n, m, number_sequence)
+function bach(inputs::Vector{Float64}, n, m, number_sequence)::Tuple{Vector{LinearCombination}, Vector{Float32}}
     """
     # BREAK (Boundary Recursive Epic Adaptive (Adventure) Klustering)
     """
@@ -162,7 +151,7 @@ function bach(inputs::Vector{Float64}, n, m, number_sequence)
     linear_combinations = start(create_linearcombinations(inputs, weights, n))
 
     # Plot the result of the first iteration here
-    display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Iteration 1")))
+#    display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Iteration 1")))
 
     # Define a vector with quantizin bounds and initialize it with 0
     quantizing_bounds = [0.0]
@@ -179,20 +168,20 @@ function bach(inputs::Vector{Float64}, n, m, number_sequence)
 
             # Plot the subdistributions 
             i = findfirst(item -> item == distribution, sub_distributions)
-            display(plot(x=collect(map(comb -> comb.value, distribution)), Geom.histogram(bincount=1000), Guide.title("Sub Distribution " * string(i))))
+#            display(plot(x=collect(map(comb -> comb.value, distribution)), Geom.histogram(bincount=1000), Guide.title("Sub Distribution " * string(i))))
             
             # Apply the optimizing function to each sub distribution and update linear_combinations for the next iteration
             
             linear_combination = optimizer(distribution, quantizing_bounds, shifting_index, n)
-            display(plot(x=collect(map(comb -> comb.value, linear_combination)), Geom.histogram(bincount=1000), Guide.title("Result after optimizing sub distribution " * string(i))))
-
-            println("bounds vector is currently: " * string(quantizing_bounds))
+#            display(plot(x=collect(map(comb -> comb.value, linear_combination)), Geom.histogram(bincount=1000), Guide.title("Result after optimizing sub distribution " * string(i))))
 
             append!(linear_combinations, linear_combination)
             
         end
-        display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Temporary Solution Number " * string(i))))
+#        display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Temporary Solution Number " * string(i))))
     end
-
-    display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Finished Result")))
+## Plot the histogram of the final result
+#    display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Finished Result")))
+    println("+++ BACH OPTIMIZATION FINISHED +++")
+    return (linear_combinations, quantizing_bounds)
 end
