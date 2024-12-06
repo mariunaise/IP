@@ -1,0 +1,80 @@
+### A Pluto.jl notebook ###
+# v0.20.3
+
+using Markdown
+using InteractiveUtils
+
+# ╔═╡ 9310cbbc-4447-4a07-b3b7-bdf5486a6b02
+begin
+import Pkg
+Pkg.activate("env")
+using Random 
+using Distributions
+using Gadfly
+end
+
+# ╔═╡ 57bf7a4b-da38-449b-b387-f5dd118da045
+module bachlib
+		include("julia_code/bach.jl")
+end
+
+# ╔═╡ acf37a4d-429f-4034-aa8b-c4bd74fea75d
+function number_sequence(i)
+	1 / 2^i
+end
+
+# ╔═╡ 948d2f9e-52a7-47b5-a14e-5e8a066e6075
+md"""
+# Basic simulation
+
+First we will simulate $1,000,000$ normal distributed values
+
+The operation performed by the BACH algorithm is described as follows: 
+
+Input values can be interpreted as a vector with n dimensions: 
+
+$\tilde{x} \in \mathbb{R}^f$
+with $f$ input values.
+
+Given the parameter $n$, we will reshape the form of $\tilde{x}$ to be of the dimension 
+
+$\mathbb{R}^{n \times \lfloor\frac{p}{n}\rfloor}$
+
+
+"""
+
+# ╔═╡ 3b7195ca-cc57-4cb1-83d7-40fe3802275f
+begin 
+	mean = 0
+	std_dev = 1
+
+	n = 3
+	m = 3
+
+	dist = Normal(mean, std_dev)
+	data = rand(dist, 1000000)
+
+	optimized = bachlib.bach(data, n, m, number_sequence)
+
+	optimized[1][1]
+end
+
+# ╔═╡ 4bc97330-3667-48f0-a1c4-60a27019e7c9
+plot(x=collect(map(comb -> comb.value, optimized[1])), Geom.histogram(bincount=1000), Guide.title("Final result of input value optimizaition"))
+
+# ╔═╡ 540fe07a-22b2-423d-a7da-8f7b53c8e41a
+# Quantize values and plot their histogram:
+begin 
+	combination_values = map(comb -> comb.value, optimized[1])
+	quantized_indices = searchsortedlast.(Ref(optimized[2]), combination_values)
+	plot(x=quantized_indices, Geom.histogram(bincount=(length(optimized[2]) + 1)), Guide.title("Histogram of the quantized values"))
+end
+
+# ╔═╡ Cell order:
+# ╠═9310cbbc-4447-4a07-b3b7-bdf5486a6b02
+# ╠═57bf7a4b-da38-449b-b387-f5dd118da045
+# ╠═acf37a4d-429f-4034-aa8b-c4bd74fea75d
+# ╟─948d2f9e-52a7-47b5-a14e-5e8a066e6075
+# ╠═3b7195ca-cc57-4cb1-83d7-40fe3802275f
+# ╟─4bc97330-3667-48f0-a1c4-60a27019e7c9
+# ╠═540fe07a-22b2-423d-a7da-8f7b53c8e41a
