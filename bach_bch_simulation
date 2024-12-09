@@ -49,7 +49,7 @@ begin
 	std_dev = 1
 
 	n = 3
-	m = 3
+	m = 10
 
 	dist = Normal(mean, std_dev)
 	data = rand(dist, 1000000)
