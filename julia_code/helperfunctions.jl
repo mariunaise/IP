@@ -16,7 +16,7 @@ function create_linearcombinations(inputs, weights, n)
             LinearCombinationSet(
                 collect(map(
                     weights -> begin
-                        LinearCombination(weights, set, sum(weights .* set))
+                            LinearCombination(weights, map(v -> [signbit(v)], weights), set, sum(weights .* set))
                     end,
                     weights
                 ))

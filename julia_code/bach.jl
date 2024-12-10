@@ -13,6 +13,8 @@ using Base.Iterators: flatten
 
 mutable struct LinearCombination
     weights::Vector{Float32}
+    # Per convention of julia, a false value means addition, a true one subtraction
+    helperdatabits::Vector{Vector{Bool}}
     inputs::Vector{Float32}
     value::Float32
 end 
@@ -86,7 +88,8 @@ function optimizer(values::Vector{LinearCombination}, bounds, fraction, n)
     new_combinations = collect(map(combination -> begin
     LinearCombinationSet(collect(map(weights_vector -> begin
         weights = combination.weights + weights_vector
-            return LinearCombination(weights, combination.inputs, sum(weights .* combination.inputs))
+        helperdata = map(v -> vcat(v[1], signbit(v[2])), zip(combination.helperdatabits, weights_vector))
+            return LinearCombination(weights, helperdata ,combination.inputs, sum(weights .* combination.inputs))
         end,frac_weights)))
     end,values))
 
