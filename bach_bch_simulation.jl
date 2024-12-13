@@ -6,12 +6,10 @@ using InteractiveUtils
 
 # ╔═╡ 9310cbbc-4447-4a07-b3b7-bdf5486a6b02
 begin
-#import Pkg
-#Pkg.activate("env")
-using Random 
-using Distributions
-using Gadfly
-using DataFrames
+	using Random 
+	using Distributions
+	using Gadfly
+	using DataFrames
 	using StatsBase
 end
 
@@ -47,13 +45,13 @@ $\mathbb{R}^{n \times \lfloor\frac{p}{n}\rfloor}$
 
 # ╔═╡ 3b7195ca-cc57-4cb1-83d7-40fe3802275f
 begin 
-	mean = 0
-	std_dev = 1
+	dist_mean = 0
+	std_dev = 100
 
-	n = 3
+	n = 2
 	m = 2
 
-	dist = Normal(mean, std_dev)
+	dist = Normal(dist_mean, std_dev)
 	data = rand(dist, 1000000)
 
 	optimized = bachlib.bach(data, n, m, number_sequence)
@@ -107,6 +105,9 @@ end,quantized_objects)
 # ╔═╡ 5559b5f5-3f16-4993-b001-9d394fceb841
 occurs = map(ocs -> countmap(ocs), hdocs)
 
+# ╔═╡ d712ba6f-e707-4315-9684-e502fc9b600f
+typeof(occurs)
+
 # ╔═╡ ba6ae272-f239-434c-ba9f-3d6ff0aa1966
 md"""
 # Overall occurrences of helper data combinations
@@ -116,7 +117,42 @@ md"""
 overall_helperdata = map(v -> v.helperdatabits ,optimized[1])
 
 # ╔═╡ 630440c9-d61d-4419-accf-42e90c92cb9f
-overall_occurs = countmap(overall_helperdata)
+counts = countmap(overall_helperdata)
+
+# ╔═╡ f6532f6c-6230-4b92-b424-cc82b34a039b
+md"""
+### We can plot these results in an overall bar diagram
+"""
+
+# ╔═╡ c78ff516-7038-4d94-96d3-2d780946fb59
+begin
+	# Convert the dictionary to a DataFrame for plotting
+	bool_vectors = [string(k) for k in keys(counts)]
+	counts_values = collect(values(counts))
+	df = DataFrame(BoolVector = bool_vectors, Count = counts_values)
+
+	# Create a bar plot
+	p = plot(df, x=:BoolVector, y=:Count, Geom.bar, 
+         Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
+         Guide.title("Occurrences of Bool Vectors"))
+end
+
+# ╔═╡ b8ef0b26-738e-422e-be32-76ab9a42b9b3
+begin
+combined_data = DataFrame(BoolVector = String[], Count = Int[], Source = String[])
+
+for (i, dict) in enumerate(occurs)
+    bool_vectors = [string(k) for k in keys(dict)]
+    counts_values = collect(values(dict))
+    source_label = fill("Symbol $i", length(bool_vectors))
+    combined_data = vcat(combined_data, DataFrame(BoolVector = bool_vectors, Count = counts_values, Source = source_label))
+end
+
+# Create a bar plot with different colors for each source
+	plot(combined_data, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
+         Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
+         Guide.title("Helper Data occurrences by quantized bits"))     					
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -907,14 +943,18 @@ version = "17.4.0+2"
 # ╟─948d2f9e-52a7-47b5-a14e-5e8a066e6075
 # ╠═3b7195ca-cc57-4cb1-83d7-40fe3802275f
 # ╟─4bc97330-3667-48f0-a1c4-60a27019e7c9
-# ╠═540fe07a-22b2-423d-a7da-8f7b53c8e41a
+# ╟─540fe07a-22b2-423d-a7da-8f7b53c8e41a
 # ╟─6ca2c429-625b-4e83-9683-83c56468ea66
 # ╠═ab9e4622-d1e6-42c5-8b4d-f0ea8c0429e6
 # ╠═a9b79c36-647a-4ec7-be71-b2250f5c80a8
 # ╠═0ab5cfeb-3bdf-4796-9092-dd757a48aad1
 # ╠═5559b5f5-3f16-4993-b001-9d394fceb841
+# ╠═d712ba6f-e707-4315-9684-e502fc9b600f
 # ╟─ba6ae272-f239-434c-ba9f-3d6ff0aa1966
 # ╠═505d065e-2ca2-46d8-b9e4-11ddd1ebf39f
 # ╠═630440c9-d61d-4419-accf-42e90c92cb9f
+# ╟─f6532f6c-6230-4b92-b424-cc82b34a039b
+# ╟─c78ff516-7038-4d94-96d3-2d780946fb59
+# ╟─b8ef0b26-738e-422e-be32-76ab9a42b9b3
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
