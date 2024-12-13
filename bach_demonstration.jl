@@ -48,7 +48,7 @@ begin
 	dist_mean = 0
 	std_dev = 100
 
-	n = 2
+	n = 3
 	m = 2
 
 	dist = Normal(dist_mean, std_dev)
@@ -73,11 +73,20 @@ end
 # ╔═╡ 6ca2c429-625b-4e83-9683-83c56468ea66
 md"""
 # Analysis helper data bits distribtuion
-We can now analyze how the helper data btis are distributed for each quantized bin. 
+We can now analyze how the helper data btis are distributed for each quantized bin.
+
+The weights are calcualted based on a given number sequence function $f$
+
+The vector of weights that will be summed up together is a vector of the following structure: 
+
+$$\text{weights} = [1, \text{number\_sequence}(2), \text{number\_sequence}(3), ..., \text{number\_sequence}(m)]$$
+
+with $m$ quantized bits
 
 """
 
 # ╔═╡ ab9e4622-d1e6-42c5-8b4d-f0ea8c0429e6
+# Function to split the Vector of LinearCombination objects into smaller chunks to which they would be quantized for a better comparison of the distrubtion of helper data
 function quantize_objects(objects, bounds)
     bins = [Vector{Any}() for _ in 1:(length(bounds) + 1)]
     for obj in objects
@@ -104,9 +113,6 @@ end,quantized_objects)
 
 # ╔═╡ 5559b5f5-3f16-4993-b001-9d394fceb841
 occurs = map(ocs -> countmap(ocs), hdocs)
-
-# ╔═╡ d712ba6f-e707-4315-9684-e502fc9b600f
-typeof(occurs)
 
 # ╔═╡ ba6ae272-f239-434c-ba9f-3d6ff0aa1966
 md"""
@@ -945,11 +951,10 @@ version = "17.4.0+2"
 # ╟─4bc97330-3667-48f0-a1c4-60a27019e7c9
 # ╟─540fe07a-22b2-423d-a7da-8f7b53c8e41a
 # ╟─6ca2c429-625b-4e83-9683-83c56468ea66
-# ╠═ab9e4622-d1e6-42c5-8b4d-f0ea8c0429e6
+# ╟─ab9e4622-d1e6-42c5-8b4d-f0ea8c0429e6
 # ╠═a9b79c36-647a-4ec7-be71-b2250f5c80a8
-# ╠═0ab5cfeb-3bdf-4796-9092-dd757a48aad1
-# ╠═5559b5f5-3f16-4993-b001-9d394fceb841
-# ╠═d712ba6f-e707-4315-9684-e502fc9b600f
+# ╟─0ab5cfeb-3bdf-4796-9092-dd757a48aad1
+# ╟─5559b5f5-3f16-4993-b001-9d394fceb841
 # ╟─ba6ae272-f239-434c-ba9f-3d6ff0aa1966
 # ╠═505d065e-2ca2-46d8-b9e4-11ddd1ebf39f
 # ╠═630440c9-d61d-4419-accf-42e90c92cb9f
