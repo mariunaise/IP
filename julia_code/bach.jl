@@ -142,19 +142,12 @@ function bach(inputs::Vector{Float64}, n, m, number_sequence)::Tuple{Vector{Line
     """
     # BREAK (Boundary Recursive Epic Adaptive (Adventure) Klustering)
     """
-    # First, we will optimize away from the 0, so the start() function is called for that 
-
-    #display(plot(x=inputs, Geom.histogram(bincount=1000)))
-
     # Initial weights are 1 and -1
     weights = generate_n_bit_numbers_alpha(n, 1)
 
     # Create initial linear combinations and optimize them away from the 0 
     # linear_combinations here contians already optimized values and weights for the 1 bit quanization and can be used here if m = 1
     linear_combinations = start(create_linearcombinations(inputs, weights, n))
-
-    # Plot the result of the first iteration here
-#    display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Iteration 1")))
 
     # Define a vector with quantizin bounds and initialize it with 0
     quantizing_bounds = [0.0]
@@ -171,20 +164,28 @@ function bach(inputs::Vector{Float64}, n, m, number_sequence)::Tuple{Vector{Line
 
             # Plot the subdistributions 
             i = findfirst(item -> item == distribution, sub_distributions)
-#            display(plot(x=collect(map(comb -> comb.value, distribution)), Geom.histogram(bincount=1000), Guide.title("Sub Distribution " * string(i))))
             
             # Apply the optimizing function to each sub distribution and update linear_combinations for the next iteration
-            
             linear_combination = optimizer(distribution, quantizing_bounds, shifting_index, n)
-#            display(plot(x=collect(map(comb -> comb.value, linear_combination)), Geom.histogram(bincount=1000), Guide.title("Result after optimizing sub distribution " * string(i))))
-
             append!(linear_combinations, linear_combination)
             
         end
-#        display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Temporary Solution Number " * string(i))))
     end
-## Plot the histogram of the final result
-#    display(plot(x=collect(map(comb -> comb.value, linear_combinations)), Geom.histogram(bincount=1000), Guide.title("Finished Result")))
-    println("+++ BACH OPTIMIZATION FINISHED +++")
     return (linear_combinations, quantizing_bounds)
+end
+
+function reconstruct_weights(helperdata, n, m, number_sequence)
+    # Needs to return a vector of weights that can be zipped together 
+    # We can deduce the number sequence based on the amounts of bits we want to quantize. 
+    # For every bit we want to quantize, we will need one more iteration -1 of the number_sequence function 
+
+    # The first weight is always 1, so we will need m-1 iteration of the number_sequence function
+    fractional_weights = append!([1.0], map(v -> number_sequence(v),collect(range(2, m))))
+
+    # Based on number of addends and number of quantized bits, the helperdata vector consists of m x n matrices. 
+    # TODO Montag
+end
+
+function reconstruct(inputs::Vector{Float64}, n, m, number_sequence)
+      
 end
