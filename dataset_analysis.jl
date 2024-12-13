@@ -11,7 +11,15 @@ using HDF5
 dataset = h5open("./full_run.puf.h5")
 
 # ╔═╡ f88759f9-91a0-47e0-9e02-e085025f6fe7
-read(dataset["Challenges"])
+read(dataset["PUF responses"])
+
+# ╔═╡ 8fb68f71-3af4-4887-aa71-a988664cd1a3
+md"""
+Vorgeben welches Symbol aus einer Linearcombination rausfallen soll. 
+"""
+
+# ╔═╡ 9fbf1198-1922-4c27-bcca-c82b213e18be
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -276,5 +284,7 @@ version = "17.4.0+2"
 # ╠═9a3e8b2e-b70b-11ef-0a75-97e6759c12b1
 # ╠═f0ac5907-5793-4329-a588-da389375cdaf
 # ╠═f88759f9-91a0-47e0-9e02-e085025f6fe7
+# ╟─8fb68f71-3af4-4887-aa71-a988664cd1a3
+# ╠═9fbf1198-1922-4c27-bcca-c82b213e18be
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
