@@ -5,11 +5,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1726560853,
-        "narHash": "sha256-X6rJYSESBVr3hBoH0WbKE5KvhPU5bloyZ2L4K60/fPQ=",
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
         "type": "github"
       },
       "original": {
@@ -20,16 +20,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1729691686,
-        "narHash": "sha256-BAuPWW+9fa1moZTU+jFh+1cUtmsuF8asgzFwejM4wac=",
+        "lastModified": 1734323986,
+        "narHash": "sha256-m/lh6hYMIWDYHCAsn81CDAiXoT3gmxXI9J987W5tZrE=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "32e940c7c420600ef0d1ef396dc63b04ee9cad37",
+        "rev": "394571358ce82dff7411395829aa6a3aad45b907",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
-        "ref": "nixos-24.05",
+        "ref": "nixos-24.11",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -64,11 +64,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1729586740,
-        "narHash": "sha256-Mjr0Gf/J5S9v7KBzIIXcBsVRss/UZK+cW6AapWXEqpc=",
+        "lastModified": 1733561124,
+        "narHash": "sha256-dzVieKkmZ4sukvGj4M/zx4g57Wp6pt0un6FbQ1JJNR4=",
         "owner": "loqusion",
         "repo": "typix",
-        "rev": "0ec55768a1c918bd09dbfd68f064b53487476c5a",
+        "rev": "3de6c20903c66ebdad236fea856a7957a82a32c9",
         "type": "github"
       },
       "original": {
@@ -80,11 +80,11 @@
     "typst-packages": {
       "flake": false,
       "locked": {
-        "lastModified": 1729843153,
-        "narHash": "sha256-C0/w8vx3034VoAOUWjO26heb4wFCvjWm+KKWG28nkio=",
+        "lastModified": 1734426872,
+        "narHash": "sha256-eL6vfQiw7NHjsghCc5kVX3ku5umQpJeMdAXQTHxvKg4=",
         "owner": "typst",
         "repo": "packages",
-        "rev": "0f6ef0b9b62caf16699df276b6b8053455f865be",
+        "rev": "b52a9d08bbd1692fad053480412ab1ed3dc9e3dc",
         "type": "github"
       },
       "original": {
