@@ -1,3 +1,15 @@
+mutable struct LinearCombination
+    weights::Vector{Float32}
+    # Per convention of julia, a false value means addition, a true one subtraction
+    helperdatabits::Vector{Vector{Bool}}
+    inputs::Vector{Float32}
+    value::Float32
+end 
+
+struct LinearCombinationSet
+    combination::Vector{LinearCombination}
+end 
+
 "Returns a list of n-bit numbers where 0 is exchanged with -a and 1 with a"
 function generate_n_bit_numbers_alpha(n, a)
     numbers = []

@@ -15,18 +15,34 @@ struct LinearCombinationSet
     combination::Vector{LinearCombination}
 end 
 
-function enroll(values::Vector{Float64}, n::Int, m::Int, codeword::String)::Vector{Union{LinearCombination, Nothing}}
+function enroll(values::Vector{Float64}, n::Int, m::Int, codeword::String, uniform::Bool)::Vector{Union{LinearCombination, Nothing}}
     # Assumption: input values are average-free
     std_dev = Statistics.stdm(values, 0)
 
     # Estimate the new distribution and guess the quantizing bounds
-    dist = Normal(0, sqrt(n) * std_dev)
-    quantiles = [quantile(dist, i / 2^m) for i in 1:(2^m-1)]
+    dist = Normal(0, std_dev)
+    println("Calculating " * string(2^m) * " quantiles")
+
+    if uniform == true
+        quantiles = [i / 2^m for i in 1:(2^m)]
+    else
+        quantiles = [quantile(dist, i / 2^m) for i in 1:(2^m-1)]
+    end
+
+    #quantiles = [quantile(dist, i / 2^m) for i in 1:(2^m-1)]
+    
+    println(quantiles)
 
     weights = generate_n_bit_numbers_alpha(n, 1) 
 
+    # We can also add some more weight combinations to this list to maybe increase accuracy ..
+    # 
+    additional_weights = 
+
     # Same procedure as every year 
-    linearcombinations = create_linearcombinations(values, weights, n) 
+    #linearcombinations = create_linearcombinations(values, weights, n) 
+
+    linearcombinations = create_linearcombinations(values, weights, n)
 
     # Partition the codeword based on the number of bits we want to extract and convert them to integers
     par_codeword = collect(map(v -> parse(Int, v, base=2),Iterators.partition(codeword, m)))
@@ -49,7 +65,20 @@ function enroll(values::Vector{Float64}, n::Int, m::Int, codeword::String)::Vect
         if isempty(filtered)
             return
         else
-            return v[1].combination[rand(filtered)]
+            #println("Thingy is not empty with " * string(length(filtered)) * "elements")
+            # Determine the quantizing bounds of one of the elements in the filtered list to find an optimal solution
+            relevant_bounds = find_interval(v[1].combination[1].value, quantiles)
+
+            # Calculate the distance to every bound of the v[1].combination vector 
+            # Should be a Vector{Vector{Float64}}
+            distances = map(combination -> begin 
+                map(bound -> begin 
+                    abs(combination.value - bound) 
+                end,relevant_bounds)  
+            end, v[1].combination)
+
+            return v[1].combination[argmax(map(v -> minimum(v), distances))]
+            #return v[1].combination[rand(filtered)]
         end
 
         # Return linear combination that best approximates that codeword

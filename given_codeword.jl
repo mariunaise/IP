@@ -36,7 +36,7 @@ begin
 	mean = 0
 	std_dev = 1
 
-	n = 3
+	n = 2
 	m = 2
 	
 	dist = Normal(mean, std_dev)
@@ -44,7 +44,7 @@ begin
 end
 
 # ╔═╡ f2aec3c2-74e5-4666-85ea-f5ad8fc7df63
-enrolled = bach.enroll(data, n, m, codeword)
+enrolled = bach.enroll(data, n, m, codeword, false)
 
 # ╔═╡ ecef5218-9866-4be8-b85b-67f491b42d2d
 filtered = filter(x -> typeof(x) != Nothing,enrolled)
@@ -53,6 +53,29 @@ filtered = filter(x -> typeof(x) != Nothing,enrolled)
 ratio = Base.length(filtered) / Base.length(enrolled)
 
 # ╔═╡ 939dee30-bfd5-4924-a38f-f27e665694ad
+plot(x=collect(map(comb -> comb.value, filtered)), Geom.histogram(bincount=1000), Guide.title("Final result of input value optimizaition"))
+
+# ╔═╡ 580e0609-7f14-4ee8-b8e9-e6400aa796cf
+uniform_values = cdf.(Normal(0, 1), data)
+
+# ╔═╡ 669b1052-3516-482b-af34-6b648f80b2fa
+plot(x=uniform_values, Geom.histogram(bincount=1000), Guide.title("Uniform Values"))
+
+# ╔═╡ 6e6efafc-cc9f-415a-82e5-e8e38cc82b4f
+md"""
+Use the uniform distributed values as input data
+"""
+
+# ╔═╡ d73c5ea5-e3ec-493c-a763-9ed375b76c1d
+enrolled_with_uniform = bach.enroll(uniform_values, n, m, codeword, true)
+
+# ╔═╡ bbe9bd93-986f-4faa-86b5-ef5590b13725
+filtered_uniform = filter(x -> typeof(x) != Nothing,enrolled_with_uniform)
+
+# ╔═╡ 588cd410-6f84-4af7-8b1b-003e3726f841
+ratio_uniform = Base.length(filtered) / Base.length(enrolled_with_uniform)
+
+# ╔═╡ a9a25d96-d39e-4fba-91ce-71fb12256b76
 plot(x=collect(map(comb -> comb.value, filtered)), Geom.histogram(bincount=1000), Guide.title("Final result of input value optimizaition"))
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -803,5 +826,12 @@ version = "17.4.0+2"
 # ╠═ecef5218-9866-4be8-b85b-67f491b42d2d
 # ╠═d4754f22-11c9-43e5-8219-d4ff1a8dce3d
 # ╠═939dee30-bfd5-4924-a38f-f27e665694ad
+# ╠═580e0609-7f14-4ee8-b8e9-e6400aa796cf
+# ╠═669b1052-3516-482b-af34-6b648f80b2fa
+# ╟─6e6efafc-cc9f-415a-82e5-e8e38cc82b4f
+# ╠═d73c5ea5-e3ec-493c-a763-9ed375b76c1d
+# ╠═bbe9bd93-986f-4faa-86b5-ef5590b13725
+# ╠═588cd410-6f84-4af7-8b1b-003e3726f841
+# ╠═a9a25d96-d39e-4fba-91ce-71fb12256b76
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
