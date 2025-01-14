@@ -76,3 +76,12 @@ If A is smaller than the smallest entry, lower is nothing and vice versa.
     
     return (lower, upper)
 end
+
+function ecdf_bounds(sorted_values, bits)::Vector{Float64}
+    standard_bounds = map(v -> v/2^bits, range(1, 2^bits-1))
+
+    # Return the value of the index of the value that is the quantile of standard_bounds entry as new bound value 
+    map(bound -> begin 
+        sorted_values[trunc(Int,length(sorted_values)*bound)] # *, since bound is < 1
+    end, standard_bounds)
+end
