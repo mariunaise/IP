@@ -11,6 +11,8 @@ begin
 	using Gadfly
 	using LinearAlgebra
 	using Statistics
+	using DataFrames
+	using StatsBase
 end
 
 # ╔═╡ 498d4fd1-fa0f-4da4-974a-21092f2860b2
@@ -19,16 +21,18 @@ module bach
 end
 
 # ╔═╡ 6b6f1863-4c23-472d-810a-078862316cef
-# Define enrollment and reconstruction values
+# Define enrollment values
 begin
 	dist_mean = 0
 	std_dev = 1
 
 	n = 3
 	m = 2
+
+	value_len = 1000000
 	
 	dist = Normal(dist_mean, std_dev)
-	data = rand(dist, 1000000)
+	data = rand(dist, value_len)
 end
 
 # ╔═╡ de1bd394-fa0c-4547-8169-197b372d7ee2
@@ -40,29 +44,303 @@ linearcombinations = bach.create_linearcombinations(data, weights, n)
 
 # ╔═╡ c53aac8b-6abd-42a1-8e7f-eedf4b1f1dd1
 begin 
-	iterations = 2
+	iterations = 1
 	alpha = 1
 end
 
+# ╔═╡ e9bbbfc3-b207-451e-ad28-92261933cba5
+# Extract values of linear combinations and do Rayleigh Estimation for the standard deviation 
+values = collect(Iterators.flatten(map(set -> begin
+	map(combination -> combination.value,set.combination)
+end,linearcombinations)))
+
+# ╔═╡ 00a312e7-840b-4f6f-a1af-958f6a531d20
+sigma = sqrt(1/2*length(values)*sum(x -> x^2, values))
+
+# ╔═╡ bf8da4fe-6312-4f1d-9b5d-f41b39e83bdb
+md"""
+-> sigma is not related to the Rayleigh Distribution
+"""
+
 # ╔═╡ c0946799-c485-41ef-bb5b-3b97910903db
-enrolled = bach.enroll(data, n, m, iterations, alpha)
+enrolled = bach.enroll(data, n, m, iterations, alpha, 0.84 * n)
 
 # ╔═╡ 84456144-2d49-4e76-ab14-31f970837eaf
-plot(x=collect(map(comb -> comb.value, enrolled)), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
+plot(x=collect(map(comb -> comb.value, enrolled[1])), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
+
+# ╔═╡ 1abc1bb5-eb93-406d-8781-161fe7216a37
+# Quantize values and plot their histogram:
+begin 
+	combination_values_1 = map(comb -> comb.value, enrolled[1])
+	quantized_indices_1 = searchsortedlast.(Ref(enrolled[2]), combination_values_1)
+	plot(x=quantized_indices_1, Geom.histogram(bincount=(length(enrolled[2]) + 1)), Guide.title("Histogram of the quantized values"))
+end
+
+# ╔═╡ 8d37dd34-2046-4489-b17e-3e3b167a5a7e
+md"""
+2.52 seems like the optimal guess for the resulting standard deviation of the result distribution. However, there seems to be no analytical connection to the input distribution.\
+This approach of fixing the resulting distribution also does not work for any higher order bit cases higher than 2, since the standrad devation does not have a big enough influence to correct the distribution.
+"""
+
+# ╔═╡ 051e74c7-f7e6-4a10-a678-dd980269819d
+md"""
+### Helper Data Distribution
+"""
+
+# ╔═╡ 4f654b6b-196d-4d32-905e-e227925a8f11
+# Function to split the Vector of LinearCombination objects into smaller chunks to which they would be quantized for a better comparison of the distrubtion of helper data
+function quantize_objects(objects, bounds)
+    bins = [Vector{Any}() for _ in 1:(length(bounds) + 1)]
+    for obj in objects
+        bin_index = searchsortedlast(bounds, obj.value)
+        if obj.value <= bounds[1]
+            bin_index = 1  # Place values less than or equal to the smallest bound in the first bin
+        elseif obj.value > bounds[end]
+            bin_index = length(bins)  # Place values greater than the largest bound in the last bin
+        else
+            bin_index += 1  # Adjust bin index for values within the bounds
+        end
+        push!(bins[bin_index], obj)
+    end
+    return bins
+end
+
+# ╔═╡ 16387326-9947-4246-866f-5be13b7e158f
+quantized_objects = quantize_objects(enrolled[1], enrolled[2])
+
+# ╔═╡ d6427f24-5bc9-4c09-afa7-076e18733dc4
+overall_helperdata = map(v -> v.helperdatabits ,enrolled[1])
+
+# ╔═╡ c4d2825c-b925-4fb0-839a-3c9a8bc1b1bc
+hdocs = map(bin -> begin 
+	map(v -> v.helperdatabits ,bin)
+end,quantized_objects)
+
+# ╔═╡ f280afa1-fc05-4dae-a741-7bfa3e1819b3
+occurs = map(ocs -> countmap(ocs), hdocs)
+
+# ╔═╡ d5b76d16-f26a-47f8-b5cd-78045c2a5350
+counts = countmap(overall_helperdata)
+
+# ╔═╡ d1e5d390-f7b7-4a61-baf0-159a1e58d9e6
+begin
+	# Convert the dictionary to a DataFrame for plotting
+	bool_vectors = [string(k) for k in DataFrames.keys(counts)]
+	counts_values = collect(DataFrames.values(counts))
+	df = DataFrame(BoolVector = bool_vectors, Count = counts_values)
+
+	# Create a bar plot
+	p = plot(df, x=:BoolVector, y=:Count, Geom.bar, 
+         Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
+         Guide.title("Occurrences of Bool Vectors"))
+end
+
+# ╔═╡ 31df2498-80dc-412c-8065-838038ac76e6
+begin
+combined_data = DataFrame(BoolVector = String[], Count = Int[], Source = String[])
+
+for (i, dict) in enumerate(occurs)
+    bool_vectors = [string(k) for k in DataFrames.keys(dict)]
+    counts_values = collect(DataFrames.values(dict))
+    source_label = fill("Symbol $i", length(bool_vectors))
+    combined_data = vcat(combined_data, DataFrame(BoolVector = bool_vectors, Count = counts_values, Source = source_label))
+end
+
+# Create a bar plot with different colors for each source
+	plot(combined_data, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
+         Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
+         Guide.title("Helper Data occurrences by quantized bits"))
+end
+
+# ╔═╡ d7b973e7-cbcd-411e-9c3d-2cab4fa63326
+md"""
+# YES
+"""
+
+# ╔═╡ 5e43e2ac-b040-4ea0-9316-d8f18ee2aa9e
+md"""
+## Investitating the distribution parameters of the resulting distribution
+"""
+
+# ╔═╡ 5185b144-5294-4e83-89dc-2fa864bc08d1
+# Standard deviation of the resulting values after filtering
+sigma_new = Statistics.std(map(comb -> comb.value, enrolled[1]))
+
+# ╔═╡ ef73c678-db04-4672-86dc-de6f34a8e382
+enrolled_corrected = bach.enroll(data, n, m, iterations, alpha, sigma_new)
+
+# ╔═╡ c5eed418-00fb-47ad-9f90-ba82dd523d15
+# Quantize values and plot their histogram:
+begin 
+	combination_values_2 = map(comb -> comb.value, enrolled_corrected[1])
+	quantized_indices_2 = searchsortedlast.(Ref(enrolled_corrected[2]), combination_values_2)
+	plot(x=quantized_indices_2, Geom.histogram(bincount=(length(enrolled_corrected[2]) + 1)), Guide.title("Histogram of the quantized values"))
+end
+
+# ╔═╡ 0c001087-fb4f-41ca-8c2b-2de50a168078
+# Standard deviation of the resulting values after filtering again
+sigma_new2 = Statistics.std(map(comb -> comb.value, enrolled_corrected[1]))
+
+# ╔═╡ 2bae9b27-344b-49f0-bc70-f2b038aba29e
+enrolled_corrected2 = bach.enroll(data, n, m, iterations, alpha, sigma_new)
+
+# ╔═╡ b65b20c5-1c11-4aba-8460-4ec5496c541f
+# Quantize values and plot their histogram:
+begin 
+	combination_values_3 = map(comb -> comb.value, enrolled_corrected2[1])
+	quantized_indices_3 = searchsortedlast.(Ref(enrolled_corrected2[2]), combination_values_3)
+	plot(x=quantized_indices_3, Geom.histogram(bincount=(length(enrolled_corrected2[2]) + 1)), Guide.title("Histogram of the quantized values"))
+end
+
+# ╔═╡ 4c778ed5-1dff-4d89-a7e7-b880d43fb3c2
+# Standard deviation of the resulting values after filtering again
+Statistics.std(map(comb -> comb.value, enrolled_corrected[1]))
+
+# ╔═╡ 5364b3d0-2695-43dd-b6bc-5fa228bd7a70
+md"""
+-> Iterative approach to find the sigma does not find the correct solution
+"""
+
+# ╔═╡ 223b2fed-22bf-4723-89d7-e8671dd419c3
+md"""
+# Finding bounds based on the recursive approach and using them in the global variant
+"""
+
+# ╔═╡ ea615cf1-ae76-4b06-b89b-be5b0d7319fb
+module bach_recursive 
+	include("julia_code/bach.jl")
+end
+
+# ╔═╡ 27c75d71-6fed-4d23-b924-263f8a1f3a96
+function number_sequence(i)
+	1 / 2^i
+end
+
+# ╔═╡ d8fb0b7f-77e7-4cce-94e0-bdd2be432fc1
+bounds = bach_recursive.bach(data, n, m, number_sequence)[2]
+
+# ╔═╡ e21faef2-675a-4b6d-9447-2201a6886f70
+bounds_rounded = round.(bounds, digits=2)
+
+# ╔═╡ adfdf1fb-7454-4f3d-8907-7e5a8b47e730
+enrolled_with_recursive_bounds = bach.enroll(data, n, m, iterations, alpha, 3.2, bounds_rounded)[1]
+
+# ╔═╡ 65b85096-e0a6-4057-906f-59afd9354d18
+plot(x=collect(map(comb -> comb.value, enrolled_with_recursive_bounds)), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
+
+# ╔═╡ 060c016f-c9c0-4b0f-832d-093199ba61b6
+md"""
+Take a look at the quantized distribution of bits
+"""
+
+# ╔═╡ c97ef68d-0286-4691-9a2c-97dc9a63bf20
+# Quantize values and plot their histogram:
+begin 
+	combination_values = map(comb -> comb.value, enrolled_with_recursive_bounds)
+	quantized_indices = searchsortedlast.(Ref(bounds_rounded), combination_values)
+	plot(x=quantized_indices, Geom.histogram(bincount=(length(bounds_rounded) + 1)), Guide.title("Histogram of the quantized values"))
+end
+
+# ╔═╡ 37b70444-ca73-424b-81dd-4a2bfb6d2e05
+# Standard deviation of the resulting values after filtering again
+Statistics.std(map(comb -> comb.value, enrolled_with_recursive_bounds))
+
+# ╔═╡ cb9a75e9-76d3-4239-9553-72a5eeeeed95
+md"""
+As we can see, this approach does not instantly yield optmial bounds
+"""
+
+# ╔═╡ 39da5c79-8665-4090-91b3-72f0cea997e2
+md"""
+# BER performance analysis
+"""
+
+# ╔═╡ 12d8a404-8d90-442f-8c74-e3ca7853070d
+# Define distribution parameters for reconstruction values 
+begin 
+	error_dist = Normal(0, 0.01)
+	error_values = rand(error_dist, value_len)
+
+	recon_data = data .+ error_values
+end
+
+# ╔═╡ bd7fea5f-95a2-4ab9-ba0e-f2abd78af3db
+found_weights = map(comb -> comb.weights, enrolled[1])
+
+# ╔═╡ 034cab50-5a94-4b9c-8fb1-7b467b91d8fa
+found_bounds = enrolled[2]
+
+# ╔═╡ 616638c1-b4f6-4a32-af3f-4ff5ffa0b925
+enrolled_values = map(comb -> comb.value, enrolled[1])
+
+# ╔═╡ ec6daa43-58e6-4de2-a77f-b3d126c20dcb
+reconstructed = bach.reconstruct(recon_data,n, found_weights)
+
+# ╔═╡ d6832adf-847a-4822-abf2-7d4c51171e74
+md"""
+### Compare enrolled and reconstructed quantized codewords
+"""
+
+# ╔═╡ 4f00c0ca-9c92-4139-bb65-633eebf996c9
+enrolled_codeword = searchsortedlast.(Ref(found_bounds), enrolled_values)
+
+# ╔═╡ a83a36a7-1517-4700-b5f9-1ef853dfcc5e
+reconstructed_codeword = searchsortedlast.(Ref(found_bounds), reconstructed)
+
+# ╔═╡ 33935c58-c81e-4b5a-bcec-3aafa127cfe9
+md"""
+### Calculate the SER of this BACH optimization
+"""
+
+# ╔═╡ ef6407e5-3980-4b8f-bff0-1333479cfe91
+error_count = count(part -> begin 
+	part[1] != part[2]
+end,zip(enrolled_codeword, reconstructed_codeword))
+
+# ╔═╡ 2ef511e7-7ecd-4c80-b782-ef4d82429737
+error_rate = error_count / length(enrolled_codeword)
+
+# ╔═╡ e73762de-ac03-4881-8c0a-7505ab9ce01e
+md"""
+### Comparison, if we would do nothing 
+"""
+
+# ╔═╡ 12af5893-3506-4e12-917f-c39da6843ce8
+nothing_codeword = searchsortedlast.(Ref(found_bounds), data)
+
+# ╔═╡ a1200828-a0ae-4c41-ada3-03129b94b6b1
+nothing_reconstructed = searchsortedlast.(Ref(found_bounds), recon_data)
+
+# ╔═╡ ede6b117-8107-425e-8aeb-d9cc9d862f93
+nothing_error_count = count(part -> begin 
+	part[1] != part[2]
+end,zip(nothing_codeword, nothing_reconstructed))
+
+# ╔═╡ 8659f8ff-029b-406f-b7d4-a09191ffbb3b
+nothing_error_rate = nothing_error_count / length(data)
+
+# ╔═╡ 3243be6f-a646-4cc0-a803-d4a5b0f1060b
+md"""
+# Thank god its better
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+DataFrames = "~1.7.0"
 Distributions = "~0.25.114"
 Gadfly = "~1.4.0"
 Statistics = "~1.11.1"
+StatsBase = "~0.33.21"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -71,7 +349,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.11.1"
 manifest_format = "2.0"
-project_hash = "4507a6e0514f64e61b1b12b3376fe6cfac0571ca"
+project_hash = "820c8f4a7110f5a19f6e3971b49aa60c1bbbc7e1"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -190,16 +468,32 @@ git-tree-sha1 = "6c9671364c68c1158ac2524ac881536195b7e7bc"
 uuid = "7ad07ef1-bdf2-5661-9d2b-286fd4296dac"
 version = "0.2.0"
 
+[[deps.Crayons]]
+git-tree-sha1 = "249fe38abf76d48563e2f4556bebd215aa317e15"
+uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
+version = "4.1.1"
+
 [[deps.DataAPI]]
 git-tree-sha1 = "abe83f3a2f1b857aac70ef8b269080af17764bbe"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 version = "1.16.0"
+
+[[deps.DataFrames]]
+deps = ["Compat", "DataAPI", "DataStructures", "Future", "InlineStrings", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrecompileTools", "PrettyTables", "Printf", "Random", "Reexport", "SentinelArrays", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
+git-tree-sha1 = "fb61b4812c49343d7ef0b533ba982c46021938a6"
+uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+version = "1.7.0"
 
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
 git-tree-sha1 = "1d0a14036acb104d9e89698bd408f63ab58cdc82"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 version = "0.18.20"
+
+[[deps.DataValueInterfaces]]
+git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
+uuid = "e2d170a0-9d28-54be-80f0-106bbe20a464"
+version = "1.0.0"
 
 [[deps.Dates]]
 deps = ["Printf"]
@@ -316,6 +610,19 @@ git-tree-sha1 = "012e604e1c7458645cb8b436f8fba789a51b257f"
 uuid = "9b13fd28-a010-5f03-acff-a1bbcff69959"
 version = "1.0.0"
 
+[[deps.InlineStrings]]
+git-tree-sha1 = "45521d31238e87ee9f9732561bfee12d4eebd52d"
+uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
+version = "1.4.2"
+
+    [deps.InlineStrings.extensions]
+    ArrowTypesExt = "ArrowTypes"
+    ParsersExt = "Parsers"
+
+    [deps.InlineStrings.weakdeps]
+    ArrowTypes = "31f734f8-188a-4ce0-8406-c8a06bd891cd"
+    Parsers = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
+
 [[deps.IntelOpenMP_jll]]
 deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl"]
 git-tree-sha1 = "10bd689145d2c3b2a9844005d01087cc1194e79e"
@@ -339,6 +646,11 @@ version = "0.15.1"
     [deps.Interpolations.weakdeps]
     Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
+[[deps.InvertedIndices]]
+git-tree-sha1 = "6da3c4316095de0f5ee2ebd875df8721e7e0bdbe"
+uuid = "41ab1584-1d38-5bbf-9106-f11c6c58b48f"
+version = "1.3.1"
+
 [[deps.IrrationalConstants]]
 git-tree-sha1 = "630b497eafcc20001bba38a4651b327dcfc491d2"
 uuid = "92d709cd-6900-40b7-9082-c6be49f344b6"
@@ -348,6 +660,11 @@ version = "0.2.2"
 git-tree-sha1 = "42d5f897009e7ff2cf88db414a389e5ed1bdd023"
 uuid = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
 version = "1.10.0"
+
+[[deps.IteratorInterfaceExtensions]]
+git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
+uuid = "82899510-4779-5014-852e-03e436cf321d"
+version = "1.0.0"
 
 [[deps.JLLWrappers]]
 deps = ["Artifacts", "Preferences"]
@@ -372,6 +689,11 @@ deps = ["Distributions", "DocStringExtensions", "FFTW", "Interpolations", "Stats
 git-tree-sha1 = "7d703202e65efa1369de1279c162b915e245eed1"
 uuid = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
 version = "0.6.9"
+
+[[deps.LaTeXStrings]]
+git-tree-sha1 = "dda21b8cbd6a6c40d9d02a73230f9d70fed6918c"
+uuid = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+version = "1.4.0"
 
 [[deps.LazyArtifacts]]
 deps = ["Artifacts", "Pkg"]
@@ -540,6 +862,12 @@ weakdeps = ["REPL"]
     [deps.Pkg.extensions]
     REPLExt = "REPL"
 
+[[deps.PooledArrays]]
+deps = ["DataAPI", "Future"]
+git-tree-sha1 = "36d8b4b899628fb92c2749eb488d884a926614d3"
+uuid = "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
+version = "1.4.3"
+
 [[deps.PrecompileTools]]
 deps = ["Preferences"]
 git-tree-sha1 = "5aa36f7049a63a1528fe8f7c3f2113413ffd4e1f"
@@ -551,6 +879,12 @@ deps = ["TOML"]
 git-tree-sha1 = "9306f6085165d270f7e3db02af26a400d580f5c6"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
 version = "1.4.3"
+
+[[deps.PrettyTables]]
+deps = ["Crayons", "LaTeXStrings", "Markdown", "PrecompileTools", "Printf", "Reexport", "StringManipulation", "Tables"]
+git-tree-sha1 = "1101cd475833706e4d0e7b122218257178f48f34"
+uuid = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
+version = "2.4.0"
 
 [[deps.Printf]]
 deps = ["Unicode"]
@@ -624,6 +958,12 @@ version = "0.5.1+0"
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 version = "0.7.0"
+
+[[deps.SentinelArrays]]
+deps = ["Dates", "Random"]
+git-tree-sha1 = "712fb0231ee6f9120e005ccd56297abbc053e7e0"
+uuid = "91c51154-3ec4-41a3-a24f-3f23e20d615c"
+version = "1.4.8"
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
@@ -717,6 +1057,12 @@ version = "1.3.2"
     ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
     InverseFunctions = "3587e190-3f89-42d0-90ee-14403ec27112"
 
+[[deps.StringManipulation]]
+deps = ["PrecompileTools"]
+git-tree-sha1 = "a6b1675a536c5ad1a60e5a5153e1fee12eb146e3"
+uuid = "892a3eda-7b42-436c-8928-eab12a02cf0e"
+version = "0.4.0"
+
 [[deps.StyledStrings]]
 uuid = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
 version = "1.11.0"
@@ -734,6 +1080,18 @@ version = "7.7.0+0"
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 version = "1.0.3"
+
+[[deps.TableTraits]]
+deps = ["IteratorInterfaceExtensions"]
+git-tree-sha1 = "c06b2f539df1c6efa794486abfb6ed2022561a39"
+uuid = "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
+version = "1.0.1"
+
+[[deps.Tables]]
+deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "OrderedCollections", "TableTraits"]
+git-tree-sha1 = "598cd7c1f68d1e205689b1c2fe65a9f85846f297"
+uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
+version = "1.12.0"
 
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
@@ -794,7 +1152,60 @@ version = "17.4.0+2"
 # ╠═de1bd394-fa0c-4547-8169-197b372d7ee2
 # ╠═b30dce14-e736-4ae9-8bee-7f7ae56ff545
 # ╠═c53aac8b-6abd-42a1-8e7f-eedf4b1f1dd1
+# ╠═e9bbbfc3-b207-451e-ad28-92261933cba5
+# ╠═00a312e7-840b-4f6f-a1af-958f6a531d20
+# ╟─bf8da4fe-6312-4f1d-9b5d-f41b39e83bdb
 # ╠═c0946799-c485-41ef-bb5b-3b97910903db
 # ╠═84456144-2d49-4e76-ab14-31f970837eaf
+# ╠═1abc1bb5-eb93-406d-8781-161fe7216a37
+# ╟─8d37dd34-2046-4489-b17e-3e3b167a5a7e
+# ╟─051e74c7-f7e6-4a10-a678-dd980269819d
+# ╟─4f654b6b-196d-4d32-905e-e227925a8f11
+# ╠═16387326-9947-4246-866f-5be13b7e158f
+# ╠═d6427f24-5bc9-4c09-afa7-076e18733dc4
+# ╠═c4d2825c-b925-4fb0-839a-3c9a8bc1b1bc
+# ╠═f280afa1-fc05-4dae-a741-7bfa3e1819b3
+# ╠═d5b76d16-f26a-47f8-b5cd-78045c2a5350
+# ╠═d1e5d390-f7b7-4a61-baf0-159a1e58d9e6
+# ╟─31df2498-80dc-412c-8065-838038ac76e6
+# ╟─d7b973e7-cbcd-411e-9c3d-2cab4fa63326
+# ╟─5e43e2ac-b040-4ea0-9316-d8f18ee2aa9e
+# ╠═5185b144-5294-4e83-89dc-2fa864bc08d1
+# ╠═ef73c678-db04-4672-86dc-de6f34a8e382
+# ╠═c5eed418-00fb-47ad-9f90-ba82dd523d15
+# ╠═0c001087-fb4f-41ca-8c2b-2de50a168078
+# ╠═2bae9b27-344b-49f0-bc70-f2b038aba29e
+# ╠═b65b20c5-1c11-4aba-8460-4ec5496c541f
+# ╠═4c778ed5-1dff-4d89-a7e7-b880d43fb3c2
+# ╟─5364b3d0-2695-43dd-b6bc-5fa228bd7a70
+# ╟─223b2fed-22bf-4723-89d7-e8671dd419c3
+# ╠═ea615cf1-ae76-4b06-b89b-be5b0d7319fb
+# ╠═27c75d71-6fed-4d23-b924-263f8a1f3a96
+# ╠═d8fb0b7f-77e7-4cce-94e0-bdd2be432fc1
+# ╠═e21faef2-675a-4b6d-9447-2201a6886f70
+# ╠═adfdf1fb-7454-4f3d-8907-7e5a8b47e730
+# ╠═65b85096-e0a6-4057-906f-59afd9354d18
+# ╠═060c016f-c9c0-4b0f-832d-093199ba61b6
+# ╠═c97ef68d-0286-4691-9a2c-97dc9a63bf20
+# ╟─37b70444-ca73-424b-81dd-4a2bfb6d2e05
+# ╟─cb9a75e9-76d3-4239-9553-72a5eeeeed95
+# ╟─39da5c79-8665-4090-91b3-72f0cea997e2
+# ╠═12d8a404-8d90-442f-8c74-e3ca7853070d
+# ╠═bd7fea5f-95a2-4ab9-ba0e-f2abd78af3db
+# ╠═034cab50-5a94-4b9c-8fb1-7b467b91d8fa
+# ╠═616638c1-b4f6-4a32-af3f-4ff5ffa0b925
+# ╠═ec6daa43-58e6-4de2-a77f-b3d126c20dcb
+# ╟─d6832adf-847a-4822-abf2-7d4c51171e74
+# ╠═4f00c0ca-9c92-4139-bb65-633eebf996c9
+# ╠═a83a36a7-1517-4700-b5f9-1ef853dfcc5e
+# ╟─33935c58-c81e-4b5a-bcec-3aafa127cfe9
+# ╠═ef6407e5-3980-4b8f-bff0-1333479cfe91
+# ╠═2ef511e7-7ecd-4c80-b782-ef4d82429737
+# ╟─e73762de-ac03-4881-8c0a-7505ab9ce01e
+# ╠═12af5893-3506-4e12-917f-c39da6843ce8
+# ╠═a1200828-a0ae-4c41-ada3-03129b94b6b1
+# ╠═ede6b117-8107-425e-8aeb-d9cc9d862f93
+# ╠═8659f8ff-029b-406f-b7d4-a09191ffbb3b
+# ╟─3243be6f-a646-4cc0-a803-d4a5b0f1060b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

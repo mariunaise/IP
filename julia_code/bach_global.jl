@@ -15,7 +15,15 @@ struct LinearCombinationSet
     combination::Vector{LinearCombination}
 end 
 
-function enroll(values, n, m, iterations, alpha)::Vector{LinearCombination}
+function enroll(values, n, m, iterations, alpha, distfactor, boundsparam=nothing)::Tuple{Vector{LinearCombination}, Vector{Float32}}
+    """
+    Function to perform a global enrollment. 
+    alpha is there to limit the distance a bound can travel in one iteration. 
+    distfactor is a scalar factor to estimate the new distribution.
+    boundsparam is an optional parameter to set the bounds manually.
+    iterations is the number of iterations the algorithm should run.
+    Returns the LinearCombinations that are the solution of the last iteration.
+    """
     # Generate Weights 
     weights = generate_n_bit_numbers_alpha(n, 1)
 
@@ -30,8 +38,13 @@ function enroll(values, n, m, iterations, alpha)::Vector{LinearCombination}
     std_dev = 1
 
     # Estimate the new distribution and guess the quantizing bounds
-    dist = Normal(0, sqrt(n) * std_dev)
-    bounds = [quantile(dist, i / 2^m) for i in 1:(2^m-1)]
+    dist = Normal(0, distfactor * std_dev)
+
+    if boundsparam == nothing
+        bounds = [quantile(dist, i / 2^m) for i in 1:(2^m-1)]
+    else
+        bounds = boundsparam
+    end
     
     println("Old bounds: ", bounds)
 
@@ -78,5 +91,12 @@ function enroll(values, n, m, iterations, alpha)::Vector{LinearCombination}
     end
     
     # At the end, return the part_solution of the last iteration 
-    return solution_combinations
+    return (solution_combinations, bounds)
+end
+
+function reconstruct(values::Vector{Float64}, n, weights::Vector{Vector{Float32}})
+    """
+    Function to reconstruct the LinearCombination values from found weights 
+    """
+    map(part -> sum(part[1] .* part[2]), zip(Iterators.partition(values,n), weights)) 
 end
