@@ -46,10 +46,10 @@ $\mathbb{R}^{n \times \lfloor\frac{p}{n}\rfloor}$
 # ╔═╡ 3b7195ca-cc57-4cb1-83d7-40fe3802275f
 begin 
 	dist_mean = 0
-	std_dev = 100
+	std_dev = 1
 
 	n = 3
-	m = 3
+	m = 2
 
 	dist = Normal(dist_mean, std_dev)
 	data = rand(dist, 1000000)
@@ -188,11 +188,11 @@ end
 
 # ╔═╡ 6f0c6e4b-f00f-496e-80dd-219b88ef6aa7
 md"""
-We can take a look at the values that we can reconstruct based on the number sequence and the helper data vector
+Lets take a look at the bounds that were used in this approach and use them in the global optimizing step 
 """
 
 # ╔═╡ fabed705-daec-4eca-9f81-06c1c001e4c9
-
+optimized[2]
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1019,20 +1019,20 @@ version = "17.4.0+2"
 # ╟─948d2f9e-52a7-47b5-a14e-5e8a066e6075
 # ╠═3b7195ca-cc57-4cb1-83d7-40fe3802275f
 # ╠═4bc97330-3667-48f0-a1c4-60a27019e7c9
-# ╟─540fe07a-22b2-423d-a7da-8f7b53c8e41a
+# ╠═540fe07a-22b2-423d-a7da-8f7b53c8e41a
 # ╟─6ca2c429-625b-4e83-9683-83c56468ea66
-# ╟─ab9e4622-d1e6-42c5-8b4d-f0ea8c0429e6
+# ╠═ab9e4622-d1e6-42c5-8b4d-f0ea8c0429e6
 # ╟─04399ac7-0d48-4278-b46e-f8da9522fef8
 # ╠═a9b79c36-647a-4ec7-be71-b2250f5c80a8
 # ╠═1aa8cd9c-60f1-4173-934e-520cea7c972d
-# ╟─0ab5cfeb-3bdf-4796-9092-dd757a48aad1
-# ╟─5559b5f5-3f16-4993-b001-9d394fceb841
+# ╠═0ab5cfeb-3bdf-4796-9092-dd757a48aad1
+# ╠═5559b5f5-3f16-4993-b001-9d394fceb841
 # ╟─ba6ae272-f239-434c-ba9f-3d6ff0aa1966
 # ╠═505d065e-2ca2-46d8-b9e4-11ddd1ebf39f
 # ╠═630440c9-d61d-4419-accf-42e90c92cb9f
 # ╟─f6532f6c-6230-4b92-b424-cc82b34a039b
-# ╟─c78ff516-7038-4d94-96d3-2d780946fb59
-# ╟─b8ef0b26-738e-422e-be32-76ab9a42b9b3
+# ╠═c78ff516-7038-4d94-96d3-2d780946fb59
+# ╠═b8ef0b26-738e-422e-be32-76ab9a42b9b3
 # ╟─6f0c6e4b-f00f-496e-80dd-219b88ef6aa7
 # ╠═fabed705-daec-4eca-9f81-06c1c001e4c9
 # ╟─00000000-0000-0000-0000-000000000001
