@@ -78,6 +78,11 @@ ratio_uniform = Base.length(filtered) / Base.length(enrolled_with_uniform)
 # ╔═╡ a9a25d96-d39e-4fba-91ce-71fb12256b76
 plot(x=collect(map(comb -> comb.value, filtered)), Geom.histogram(bincount=1000), Guide.title("Final result of input value optimizaition"))
 
+# ╔═╡ 33e83470-1ab3-478f-926d-95571104a7b4
+md"""
+Result: Not very good :(
+"""
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -833,5 +838,6 @@ version = "17.4.0+2"
 # ╠═bbe9bd93-986f-4faa-86b5-ef5590b13725
 # ╠═588cd410-6f84-4af7-8b1b-003e3726f841
 # ╠═a9a25d96-d39e-4fba-91ce-71fb12256b76
+# ╟─33e83470-1ab3-478f-926d-95571104a7b4
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
