@@ -15,6 +15,10 @@ begin
 	using StatsBase
 end
 
+# ╔═╡ 0750906e-480d-4445-91da-5bb3619b838b
+# We can test how good the resulting distribution approximates a uniform distribution using the Chi Square Test
+using HypothesisTests 
+
 # ╔═╡ 498d4fd1-fa0f-4da4-974a-21092f2860b2
 module bach
 	include("julia_code/bach_global.jl")
@@ -65,6 +69,9 @@ md"""
 # ╔═╡ c0946799-c485-41ef-bb5b-3b97910903db
 enrolled = bach.enroll(data, n, m, iterations, alpha, 0.84 * n)
 
+# ╔═╡ f22e78a6-0e69-4052-af7f-4fb9fa7a3cf1
+@time bach.enroll(data, n, m, iterations, alpha, 0.84 * n)
+
 # ╔═╡ 84456144-2d49-4e76-ab14-31f970837eaf
 plot(x=collect(map(comb -> comb.value, enrolled[1])), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
 
@@ -81,6 +88,22 @@ md"""
 2.52 seems like the optimal guess for the resulting standard deviation of the result distribution. However, there seems to be no analytical connection to the input distribution.\
 This approach of fixing the resulting distribution also does not work for any higher order bit cases higher than 2, since the standrad devation does not have a big enough influence to correct the distribution.
 """
+
+# ╔═╡ 0db60853-92f9-4d87-a718-44beaea71756
+dictt = collect(DataFrames.values(countmap(quantized_indices_1)))
+
+# ╔═╡ 8cac6a0a-becf-4e1d-9dde-ff0e1c8e684d
+begin
+	observed_frequencies = collect(DataFrames.values(countmap(quantized_indices_1)))
+	total_values = length(combination_values_1)
+	num_bins = length(enrolled[2]) + 1
+	expected_frequencies = fill(total_values / num_bins, num_bins)
+	expected_frequencies = expected_frequencies / total_values
+	#println(expected_frequencies_3)
+	#expected_frequencies_3 = [1/4, 1/4, 1/4, 1/4]
+
+	pvalue(ChisqTest(observed_frequencies, expected_frequencies))
+end
 
 # ╔═╡ 051e74c7-f7e6-4a10-a678-dd980269819d
 md"""
@@ -177,6 +200,18 @@ begin
 	plot(x=quantized_indices_2, Geom.histogram(bincount=(length(enrolled_corrected[2]) + 1)), Guide.title("Histogram of the quantized values"))
 end
 
+# ╔═╡ 8032e836-b549-461f-a2f8-aa6087952aca
+begin
+	observed_frequencies_2 = collect(DataFrames.values(countmap(quantized_indices_2)))
+	total_values_2 = length(combination_values_2)
+	num_bins_2 = length(enrolled[2]) + 1
+	expected_frequencies_2 = fill(total_values / num_bins, num_bins)
+
+	chi_square_stat_2 = sum((observed_frequencies_2 .- expected_frequencies_2) .^2 ./ expected_frequencies_2)
+
+	p_value_2 = 1 - cdf(Chisq(num_bins_2 -1), chi_square_stat_2)
+end
+
 # ╔═╡ 0c001087-fb4f-41ca-8c2b-2de50a168078
 # Standard deviation of the resulting values after filtering again
 sigma_new2 = Statistics.std(map(comb -> comb.value, enrolled_corrected[1]))
@@ -190,6 +225,22 @@ begin
 	combination_values_3 = map(comb -> comb.value, enrolled_corrected2[1])
 	quantized_indices_3 = searchsortedlast.(Ref(enrolled_corrected2[2]), combination_values_3)
 	plot(x=quantized_indices_3, Geom.histogram(bincount=(length(enrolled_corrected2[2]) + 1)), Guide.title("Histogram of the quantized values"))
+end
+
+# ╔═╡ 84015914-9f1c-4bb0-9226-bb1658f67c21
+
+
+# ╔═╡ 69597adb-c019-4158-8363-47824cc0ca9f
+begin
+	observed_frequencies_3 = collect(DataFrames.values(countmap(quantized_indices_3)))
+	total_values_3 = length(combination_values_3)
+	num_bins_3 = length(enrolled[2]) + 1
+	expected_frequencies_3 = fill(total_values_3 / num_bins_3, num_bins_3)
+	expected_frequencies_3 = expected_frequencies_3 / total_values
+	#println(expected_frequencies_3)
+	#expected_frequencies_3 = [1/4, 1/4, 1/4, 1/4]
+
+	ChisqTest(observed_frequencies_3, expected_frequencies_3)
 end
 
 # ╔═╡ 4c778ed5-1dff-4d89-a7e7-b880d43fb3c2
@@ -330,6 +381,7 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
+HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
@@ -339,6 +391,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 DataFrames = "~1.7.0"
 Distributions = "~0.25.114"
 Gadfly = "~1.4.0"
+HypothesisTests = "~0.11.3"
 Statistics = "~1.11.1"
 StatsBase = "~0.33.21"
 """
@@ -349,7 +402,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.11.1"
 manifest_format = "2.0"
-project_hash = "820c8f4a7110f5a19f6e3971b49aa60c1bbbc7e1"
+project_hash = "23eeef4b8307fe126926cc75dd1986bef3a98047"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -361,6 +414,31 @@ weakdeps = ["ChainRulesCore", "Test"]
     [deps.AbstractFFTs.extensions]
     AbstractFFTsChainRulesCoreExt = "ChainRulesCore"
     AbstractFFTsTestExt = "Test"
+
+[[deps.Accessors]]
+deps = ["CompositionsBase", "ConstructionBase", "Dates", "InverseFunctions", "MacroTools"]
+git-tree-sha1 = "0ba8f4c1f06707985ffb4804fdad1bf97b233897"
+uuid = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
+version = "0.1.41"
+
+    [deps.Accessors.extensions]
+    AxisKeysExt = "AxisKeys"
+    IntervalSetsExt = "IntervalSets"
+    LinearAlgebraExt = "LinearAlgebra"
+    StaticArraysExt = "StaticArrays"
+    StructArraysExt = "StructArrays"
+    TestExt = "Test"
+    UnitfulExt = "Unitful"
+
+    [deps.Accessors.weakdeps]
+    AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
+    IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
+    LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+    Requires = "ae029012-a4dd-5104-9daa-d747884805df"
+    StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+    StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
+    Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+    Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -436,6 +514,16 @@ git-tree-sha1 = "362a287c3aa50601b0bc359053d5c2468f0e7ce0"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.11"
 
+[[deps.Combinatorics]]
+git-tree-sha1 = "08c8b6831dc00bfea825826be0bc8336fc369860"
+uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+version = "1.0.2"
+
+[[deps.CommonSolve]]
+git-tree-sha1 = "0eee5eb66b1cf62cd6ad1b460238e60e4b09400c"
+uuid = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
+version = "0.2.4"
+
 [[deps.Compat]]
 deps = ["TOML", "UUIDs"]
 git-tree-sha1 = "8ae8d32e09f0dcf42a36b90d4e17f5dd2e4c4215"
@@ -456,6 +544,30 @@ deps = ["Base64", "Colors", "DataStructures", "Dates", "IterTools", "JSON", "Lin
 git-tree-sha1 = "bf6570a34c850f99407b494757f5d7ad233a7257"
 uuid = "a81c6b42-2e10-5240-aca2-a61377ecd94b"
 version = "0.9.5"
+
+[[deps.CompositionsBase]]
+git-tree-sha1 = "802bb88cd69dfd1509f6670416bd4434015693ad"
+uuid = "a33af91c-f02d-484b-be07-31d278c5ca2b"
+version = "0.1.2"
+weakdeps = ["InverseFunctions"]
+
+    [deps.CompositionsBase.extensions]
+    CompositionsBaseInverseFunctionsExt = "InverseFunctions"
+
+[[deps.ConstructionBase]]
+git-tree-sha1 = "76219f1ed5771adbb096743bff43fb5fdd4c1157"
+uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
+version = "1.5.8"
+
+    [deps.ConstructionBase.extensions]
+    ConstructionBaseIntervalSetsExt = "IntervalSets"
+    ConstructionBaseLinearAlgebraExt = "LinearAlgebra"
+    ConstructionBaseStaticArraysExt = "StaticArrays"
+
+    [deps.ConstructionBase.weakdeps]
+    IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
+    LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+    StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [[deps.Contour]]
 git-tree-sha1 = "439e35b0b36e2e5881738abc8857bd92ad6ff9a8"
@@ -605,6 +717,12 @@ git-tree-sha1 = "b1c2585431c382e3fe5805874bda6aea90a95de9"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.25"
 
+[[deps.HypothesisTests]]
+deps = ["Combinatorics", "Distributions", "LinearAlgebra", "Printf", "Random", "Rmath", "Roots", "Statistics", "StatsAPI", "StatsBase"]
+git-tree-sha1 = "6c3ce99fdbaf680aa6716f4b919c19e902d67c9c"
+uuid = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
+version = "0.11.3"
+
 [[deps.IndirectArrays]]
 git-tree-sha1 = "012e604e1c7458645cb8b436f8fba789a51b257f"
 uuid = "9b13fd28-a010-5f03-acff-a1bbcff69959"
@@ -645,6 +763,16 @@ version = "0.15.1"
 
     [deps.Interpolations.weakdeps]
     Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[[deps.InverseFunctions]]
+git-tree-sha1 = "a779299d77cd080bf77b97535acecd73e1c5e5cb"
+uuid = "3587e190-3f89-42d0-90ee-14403ec27112"
+version = "0.1.17"
+weakdeps = ["Dates", "Test"]
+
+    [deps.InverseFunctions.extensions]
+    InverseFunctionsDatesExt = "Dates"
+    InverseFunctionsTestExt = "Test"
 
 [[deps.InvertedIndices]]
 git-tree-sha1 = "6da3c4316095de0f5ee2ebd875df8721e7e0bdbe"
@@ -955,6 +1083,26 @@ git-tree-sha1 = "58cdd8fb2201a6267e1db87ff148dd6c1dbd8ad8"
 uuid = "f50d1b31-88e8-58de-be2c-1cc44531875f"
 version = "0.5.1+0"
 
+[[deps.Roots]]
+deps = ["Accessors", "CommonSolve", "Printf"]
+git-tree-sha1 = "f233e0a3de30a6eed170b8e1be0440f732fdf456"
+uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+version = "2.2.4"
+
+    [deps.Roots.extensions]
+    RootsChainRulesCoreExt = "ChainRulesCore"
+    RootsForwardDiffExt = "ForwardDiff"
+    RootsIntervalRootFindingExt = "IntervalRootFinding"
+    RootsSymPyExt = "SymPy"
+    RootsSymPyPythonCallExt = "SymPyPythonCall"
+
+    [deps.Roots.weakdeps]
+    ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
+    ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+    IntervalRootFinding = "d2bf35a9-74e0-55ec-b149-d360ff49b807"
+    SymPy = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6"
+    SymPyPythonCall = "bc8888f7-b21e-4b7c-a06a-5d9c9496438c"
+
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 version = "0.7.0"
@@ -1048,14 +1196,11 @@ deps = ["HypergeometricFunctions", "IrrationalConstants", "LogExpFunctions", "Re
 git-tree-sha1 = "b423576adc27097764a90e163157bcfc9acf0f46"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "1.3.2"
+weakdeps = ["ChainRulesCore", "InverseFunctions"]
 
     [deps.StatsFuns.extensions]
     StatsFunsChainRulesCoreExt = "ChainRulesCore"
     StatsFunsInverseFunctionsExt = "InverseFunctions"
-
-    [deps.StatsFuns.weakdeps]
-    ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-    InverseFunctions = "3587e190-3f89-42d0-90ee-14403ec27112"
 
 [[deps.StringManipulation]]
 deps = ["PrecompileTools"]
@@ -1156,9 +1301,13 @@ version = "17.4.0+2"
 # ╠═00a312e7-840b-4f6f-a1af-958f6a531d20
 # ╟─bf8da4fe-6312-4f1d-9b5d-f41b39e83bdb
 # ╠═c0946799-c485-41ef-bb5b-3b97910903db
+# ╠═f22e78a6-0e69-4052-af7f-4fb9fa7a3cf1
 # ╠═84456144-2d49-4e76-ab14-31f970837eaf
 # ╠═1abc1bb5-eb93-406d-8781-161fe7216a37
 # ╟─8d37dd34-2046-4489-b17e-3e3b167a5a7e
+# ╠═0750906e-480d-4445-91da-5bb3619b838b
+# ╠═0db60853-92f9-4d87-a718-44beaea71756
+# ╠═8cac6a0a-becf-4e1d-9dde-ff0e1c8e684d
 # ╟─051e74c7-f7e6-4a10-a678-dd980269819d
 # ╟─4f654b6b-196d-4d32-905e-e227925a8f11
 # ╠═16387326-9947-4246-866f-5be13b7e158f
@@ -1173,9 +1322,12 @@ version = "17.4.0+2"
 # ╠═5185b144-5294-4e83-89dc-2fa864bc08d1
 # ╠═ef73c678-db04-4672-86dc-de6f34a8e382
 # ╠═c5eed418-00fb-47ad-9f90-ba82dd523d15
+# ╠═8032e836-b549-461f-a2f8-aa6087952aca
 # ╠═0c001087-fb4f-41ca-8c2b-2de50a168078
 # ╠═2bae9b27-344b-49f0-bc70-f2b038aba29e
 # ╠═b65b20c5-1c11-4aba-8460-4ec5496c541f
+# ╠═84015914-9f1c-4bb0-9226-bb1658f67c21
+# ╠═69597adb-c019-4158-8363-47824cc0ca9f
 # ╠═4c778ed5-1dff-4d89-a7e7-b880d43fb3c2
 # ╟─5364b3d0-2695-43dd-b6bc-5fa228bd7a70
 # ╟─223b2fed-22bf-4723-89d7-e8671dd419c3
