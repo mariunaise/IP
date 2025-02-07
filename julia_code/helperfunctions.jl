@@ -10,6 +10,20 @@ struct LinearCombinationSet
     combination::Vector{LinearCombination}
 end 
 
+function generate_n_bit_numbers_msb(n)
+    """
+    Same as generate_n_bit_numbers_alpha, but the MSB is fixed as +1 
+    Used to decrease the number of possible combinations used by the BACH optimization
+    """
+    numbers = []
+    for i in 0:(2^(n-1)-1) 
+        binary_str = "0" * bitstring(i)[end-n+2:end]
+        transformed = [c == '0' ? 1 : -1 for c in binary_str]
+        push!(numbers, transformed)
+    end
+    return numbers
+end
+
 "Returns a list of n-bit numbers where 0 is exchanged with -a and 1 with a"
 function generate_n_bit_numbers_alpha(n, a)
     numbers = []
