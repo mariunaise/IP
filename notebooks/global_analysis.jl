@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.3
+# v0.20.4
 
 using Markdown
 using InteractiveUtils
@@ -21,7 +21,7 @@ using HypothesisTests
 
 # ╔═╡ 498d4fd1-fa0f-4da4-974a-21092f2860b2
 module bach
-	include("julia_code/bach_global.jl")
+	include("../julia_code/bach_global.jl")
 end
 
 # ╔═╡ 6b6f1863-4c23-472d-810a-078862316cef
@@ -259,7 +259,7 @@ md"""
 
 # ╔═╡ ea615cf1-ae76-4b06-b89b-be5b0d7319fb
 module bach_recursive 
-	include("julia_code/bach.jl")
+	include("../julia_code/bach.jl")
 end
 
 # ╔═╡ 27c75d71-6fed-4d23-b924-263f8a1f3a96
@@ -401,6 +401,50 @@ begin
 	quantized_indices_5 = searchsortedlast.(Ref(solutions), combination_values_5)
 	plot(x=quantized_indices_5, Geom.histogram(bincount=(length(solutions) + 1)), Guide.title("Histogram of the quantized values"))
 end
+
+# ╔═╡ baf21f6a-f1ef-49d0-b1a8-6d6ec9e31b61
+md"""
+## Check helper data leakage for completeness
+"""
+
+# ╔═╡ 05a4f078-d94a-49e5-8bf6-2c0e54629e72
+begin 
+	quantized_objects_1 = quantize_objects(enrolled_higher_order, solutions)
+	overall_helperdata_1 = map(v -> v.helperdatabits ,enrolled_higher_order)
+	hdocs_1 = map(bin -> begin 
+	map(v -> v.helperdatabits ,bin)
+	end,quantized_objects_1)
+	occurs_1 = map(ocs -> countmap(ocs), hdocs_1)
+	counts_1 = countmap(overall_helperdata_1)
+
+	# Convert the dictionary to a DataFrame for plotting
+	bool_vectors_1 = [string(k) for k in DataFrames.keys(counts_1)]
+	counts_values_1 = collect(DataFrames.values(counts_1))
+	df_1 = DataFrame(BoolVector = bool_vectors_1, Count = counts_values_1)
+end
+
+# ╔═╡ 42c37a4f-fdcc-4d7c-8c48-db3124498ea7
+begin
+combined_data_1 = DataFrame(BoolVector = String[], Count = Int[], Source = String[])
+
+for (i, dict) in enumerate(occurs_1)
+    bool_vectors_1 = [string(k) for k in DataFrames.keys(dict)]
+    counts_values_1 = collect(DataFrames.values(dict))
+    source_label_1 = fill("Symbol $i", length(bool_vectors_1))
+    combined_data_1 = vcat(combined_data_1, DataFrame(BoolVector = bool_vectors_1, Count = counts_values_1, Source = source_label_1))
+end
+
+# Create a bar plot with different colors for each source
+	plot(combined_data_1, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
+         Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
+         Guide.title("Helper Data occurrences by quantized bits"))
+end
+
+# ╔═╡ a0706de4-c63f-4105-a6da-c24144036e24
+md"""
+# Wuhu
+the helper data do not leak information
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1343,7 +1387,7 @@ version = "17.4.0+2"
 # ╠═f280afa1-fc05-4dae-a741-7bfa3e1819b3
 # ╠═d5b76d16-f26a-47f8-b5cd-78045c2a5350
 # ╠═d1e5d390-f7b7-4a61-baf0-159a1e58d9e6
-# ╟─31df2498-80dc-412c-8065-838038ac76e6
+# ╠═31df2498-80dc-412c-8065-838038ac76e6
 # ╟─d7b973e7-cbcd-411e-9c3d-2cab4fa63326
 # ╟─5e43e2ac-b040-4ea0-9316-d8f18ee2aa9e
 # ╠═5185b144-5294-4e83-89dc-2fa864bc08d1
@@ -1391,5 +1435,9 @@ version = "17.4.0+2"
 # ╠═3ff58c0c-31c7-4990-bffc-9269e0b2dfb2
 # ╠═184fa6e0-caa3-46bc-96b6-0ccaca7bd040
 # ╠═ee3ee264-1a63-4e17-9830-916335154f65
+# ╟─baf21f6a-f1ef-49d0-b1a8-6d6ec9e31b61
+# ╟─05a4f078-d94a-49e5-8bf6-2c0e54629e72
+# ╟─42c37a4f-fdcc-4d7c-8c48-db3124498ea7
+# ╟─a0706de4-c63f-4105-a6da-c24144036e24
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
