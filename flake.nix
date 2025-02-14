@@ -47,17 +47,7 @@
       devShell = pkgs.mkShell {
         buildInputs = with pkgs; [
           typst
-          python312
-          python312Packages.pandas
-          python312Packages.glob2
-          python312Packages.matplotlib
-          python312Packages.jupyter-core
-          python312Packages.ipykernel
-          python312Packages.numpy
-          python312Packages.xarray
-          python312Packages.scipy
-          python312Packages.statistics
-          python312Packages.imageio
+          julia-bin
         ];
       };
       packages.IP-report = tx.buildTypstProject (typstProject // typstProjectSrc);
