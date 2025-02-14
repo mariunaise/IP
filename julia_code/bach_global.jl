@@ -4,6 +4,10 @@ using Statistics
 using Distributions
 
 mutable struct LinearCombination
+    """
+    Struct to represent a linear combination of input values. 
+    Contains a weights field with the weights used for the linear combination, a helperdatabits field that contains the information which input values are added and which are subtracted, an inputs field that contains the input values used for the linear combination, a value field that contains the result of the linear combination.
+    """
     weights::Vector{Float32}
     # Per convention of julia, a false value means addition, a true one subtraction
     helperdatabits::Vector{Vector{Bool}}
@@ -12,17 +16,18 @@ mutable struct LinearCombination
 end 
 
 struct LinearCombinationSet
+    """
+    Struct to represent a set of linear combinations. 
+    Used by the enrollment function to store multiple linear combinations that are possible solutions for one set of input values.
+    """
     combination::Vector{LinearCombination}
 end 
 
 function enroll_optimized(linearcombinations, bounds) # 340ms
     """
-    Enrollment function optimized for various input parameters boundsparam. 
-
-    Things that have been done to increase the performance of the original enrollment function 
-    - Instead of generating the LinearCombinationSet objects inside of the enrollment function we will instead calculate all these possible results beforehand
-    - Currently, there are 8 different combinations to be tested here (n=3 case). Becasue the MSB doesnt really matter for this analysis, we can also lower here the number of input vectors that will be tested. 
-    - DO NOT USE pmap, slows down the function by 700ms..
+    Enrollment function 
+    Takes a Vector of LinearCombinationSet objects as possible input combinations and a vector of bounds to perform the sieving operation. 
+    Bounds has to be a vector of float values that are symmetrically distributed around 0.
     """
     # Out of every LinearCombinationSet find the LinearCombination that best optimizes away from each bound 
     result = map(set -> begin 
@@ -43,6 +48,7 @@ end
 
 function enroll(values, n, m, iterations, alpha, distfactor, boundsparam=nothing)::Tuple{Vector{LinearCombination}, Vector{Float32}}
     """
+    DEPRECATED FUNCTION, USE enroll_optimized INSTEAD
     Function to perform a global enrollment. 
     alpha is there to limit the distance a bound can travel in one iteration. 
     distfactor is a scalar factor to estimate the new distribution.
@@ -123,6 +129,7 @@ end
 function reconstruct(values::Vector{Float64}, n, weights::Vector{Vector{Float32}})
     """
     Function to reconstruct the LinearCombination values from found weights 
+    Needs the (normal distributed) input values, the number of addends n and the vector of weights for every linear combination as two dimensional array.
     """
     map(part -> sum(part[1] .* part[2]), zip(Iterators.partition(values,n), weights)) 
 end

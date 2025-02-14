@@ -1,3 +1,8 @@
+"""
+Source code for a recursive clustering algorithm that splits a given distribution into multiple sub distributions forcing a uniform distribution of the resulting values. 
+*This solution has been shown to leak information through its helperdata generation!*
+"""
+
 include("helperfunctions.jl") 
 
 ENV["BROWSER"] = "loupe"

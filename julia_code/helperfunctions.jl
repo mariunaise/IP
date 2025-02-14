@@ -1,3 +1,7 @@
+"""
+This file contains multiple helper functions for the sieving algorithm strategies.
+"""
+
 mutable struct LinearCombination
     weights::Vector{Float32}
     # Per convention of julia, a false value means addition, a true one subtraction
@@ -24,8 +28,10 @@ function generate_n_bit_numbers_msb(n)
     return numbers
 end
 
-"Returns a list of n-bit numbers where 0 is exchanged with -a and 1 with a"
 function generate_n_bit_numbers_alpha(n, a)
+    """
+    Returns a list of n-bit numbers where 0 is exchanged with -a and 1 with a
+    """
     numbers = []
     for i in 0:(2^n - 1)
         binary_str = bitstring(i)[end-n+1:end]
@@ -36,6 +42,10 @@ function generate_n_bit_numbers_alpha(n, a)
 end
 
 function create_linearcombinations(inputs, weights, n) 
+    """
+    Takes a list of normal distributed input values, a number of addends n and the weights to use to caluclate all possible linear combinations for a set of input values.
+    Returns a vector of LinearCombinationSet objects. 
+    """
     collect(
     map(
         set -> begin
@@ -92,6 +102,9 @@ If A is smaller than the smallest entry, lower is nothing and vice versa.
 end
 
 function ecdf_bounds(sorted_values, bits)::Vector{Float64}
+    """
+    Deprecated function, used to a global optimization function that is not functional.
+    """
     standard_bounds = map(v -> v/2^bits, range(1, 2^bits-1))
 
     # Return the value of the index of the value that is the quantile of standard_bounds entry as new bound value 
