@@ -375,6 +375,33 @@ md"""
 # Thank god its better
 """
 
+# ╔═╡ b6c71800-acd3-49d5-817a-b69f42b3e32b
+md"""
+Visual of the found bound solution
+"""
+
+# ╔═╡ d6b2ed89-6415-4207-8552-0c2c2ef08c7a
+begin 
+	a = 2.71
+	b = 1.67
+	c = 0.81
+	solutions = [-a, -b, -c, 0.0, c, b, a]
+end
+
+# ╔═╡ 3ff58c0c-31c7-4990-bffc-9269e0b2dfb2
+enrolled_higher_order = bach.enroll(data, n, 3, iterations, alpha, 3.2, solutions)[1]
+
+# ╔═╡ 184fa6e0-caa3-46bc-96b6-0ccaca7bd040
+plot(x=collect(map(comb -> comb.value, enrolled_higher_order)), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
+
+# ╔═╡ ee3ee264-1a63-4e17-9830-916335154f65
+# Quantize values and plot their histogram:
+begin 
+	combination_values_5 = map(comb -> comb.value, enrolled_higher_order)
+	quantized_indices_5 = searchsortedlast.(Ref(solutions), combination_values_5)
+	plot(x=quantized_indices_5, Geom.histogram(bincount=(length(solutions) + 1)), Guide.title("Histogram of the quantized values"))
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -400,7 +427,7 @@ StatsBase = "~0.33.21"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.11.1"
+julia_version = "1.11.3"
 manifest_format = "2.0"
 project_hash = "23eeef4b8307fe126926cc75dd1986bef3a98047"
 
@@ -1359,5 +1386,10 @@ version = "17.4.0+2"
 # ╠═ede6b117-8107-425e-8aeb-d9cc9d862f93
 # ╠═8659f8ff-029b-406f-b7d4-a09191ffbb3b
 # ╟─3243be6f-a646-4cc0-a803-d4a5b0f1060b
+# ╠═b6c71800-acd3-49d5-817a-b69f42b3e32b
+# ╠═d6b2ed89-6415-4207-8552-0c2c2ef08c7a
+# ╠═3ff58c0c-31c7-4990-bffc-9269e0b2dfb2
+# ╠═184fa6e0-caa3-46bc-96b6-0ccaca7bd040
+# ╠═ee3ee264-1a63-4e17-9830-916335154f65
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
