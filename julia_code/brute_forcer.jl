@@ -41,11 +41,11 @@ possible_bounds = reshape(map(tuple -> begin return [-tuple[3], -tuple[2], -tupl
 
 csv_lock = ReentrantLock()
 
-# Define weights 
+# Define weights
 
 bach_weights = generate_n_bit_numbers_msb(n)
 
-# Define the possible linearcombinations now 
+# Define the possible linearcombinations now
 linearcombinations = create_linearcombinations(data, bach_weights, n)
 
 # Define a function to append the result to the CSV
@@ -74,26 +74,26 @@ end
 
 @everywhere function enroll_optimized(linearcombinations, bounds) # 340ms
     """
-    Enrollment function optimized for various input parameters boundsparam. 
+    Enrollment function optimized for various input parameters boundsparam.
 
-    Things that have been done to increase the performance of the original enrollment function 
+    Things that have been done to increase the performance of the original enrollment function
     - Instead of generating the LinearCombinationSet objects inside of the enrollment function we will instead calculate all these possible results beforehand
-    - Currently, there are 8 different combinations to be tested here (n=3 case). Becasue the MSB doesnt really matter for this analysis, we can also lower here the number of input vectors that will be tested. 
+    - Currently, there are 8 different combinations to be tested here (n=3 case). Becasue the MSB doesnt really matter for this analysis, we can also lower here the number of input vectors that will be tested.
     - DO NOT USE pmap, slows down the function by 700ms..
     """
-    # Out of every LinearCombinationSet find the LinearCombination that best optimizes away from each bound 
-    result = map(set -> begin 
+    # Out of every LinearCombinationSet find the LinearCombination that best optimizes away from each bound
+    result = map(set -> begin
         # Return the LinearCombination object that is furthest away from any of the bounds
-        distances = map(combination -> begin 
-            map(bound -> begin 
-                abs(combination.value - bound) 
-            end, bounds)  
-        end, set.combination)  
-            
-        return set.combination[argmax(map(v -> minimum(v), distances))] 
-            
+        distances = map(combination -> begin
+            map(bound -> begin
+                abs(combination.value - bound)
+            end, bounds)
+        end, set.combination)
+
+        return set.combination[argmax(map(v -> minimum(v), distances))]
+
     end,linearcombinations)
-    
+
     return map(comb -> comb.value, result)
 
 end
