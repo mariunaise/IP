@@ -1,1 +1,0 @@
-= Technischer Hintergrund -- Ausgangslage
