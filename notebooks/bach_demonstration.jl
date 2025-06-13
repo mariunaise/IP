@@ -15,7 +15,7 @@ end
 
 # ╔═╡ 57bf7a4b-da38-449b-b387-f5dd118da045
 module bachlib
-		include("julia_code/bach.jl")
+		include("../julia_code/bach.jl")
 end
 
 # ╔═╡ acf37a4d-429f-4034-aa8b-c4bd74fea75d
@@ -60,7 +60,7 @@ begin
 end
 
 # ╔═╡ 4bc97330-3667-48f0-a1c4-60a27019e7c9
-plot(x=collect(map(comb -> comb.value, optimized[1])), Geom.histogram(bincount=1000), Guide.title("Final result of input value optimizaition"))
+plot(x=collect(map(comb -> comb.value, optimized[1])), Geom.histogram(bincount=1000), Guide.title("Final result of recursive method"))
 
 # ╔═╡ 540fe07a-22b2-423d-a7da-8f7b53c8e41a
 # Quantize values and plot their histogram:
@@ -214,7 +214,7 @@ StatsBase = "~0.33.21"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.11.1"
+julia_version = "1.11.3"
 manifest_format = "2.0"
 project_hash = "660761aa2c3cc070efff2e4422eb70c61b3f26a1"
 

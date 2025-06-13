@@ -14,7 +14,7 @@ end
 
 # ╔═╡ 0d7f70a0-69c0-49f5-881e-c3f2f6fc0014
 module bach
-	include("julia_code/bach_new.jl")
+	include("../julia_code/bach_new.jl")
 end
 
 # ╔═╡ 3deab2b0-3070-4b09-b614-976a09a402e3
@@ -101,7 +101,7 @@ StatsBase = "~0.33.21"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.11.1"
+julia_version = "1.11.3"
 manifest_format = "2.0"
 project_hash = "3f85cbb2e472516a6cc7d13be927d5d9e3a05244"
 

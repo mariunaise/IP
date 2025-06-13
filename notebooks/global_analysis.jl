@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.4
+# v0.20.3
 
 using Markdown
 using InteractiveUtils
@@ -392,7 +392,7 @@ end
 enrolled_higher_order = bach.enroll(data, n, 3, iterations, alpha, 3.2, solutions)[1]
 
 # ╔═╡ 184fa6e0-caa3-46bc-96b6-0ccaca7bd040
-plot(x=collect(map(comb -> comb.value, enrolled_higher_order)), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
+plot(x=collect(map(comb -> comb.value, enrolled_higher_order)), Geom.histogram(bincount=1000), Guide.title("Brute-Force results"))
 
 # ╔═╡ ee3ee264-1a63-4e17-9830-916335154f65
 # Quantize values and plot their histogram:
