@@ -1,3 +1,6 @@
 [submodule "IP_bericht"]
 	path = IP_bericht
 	url = https://git.nixfunktioniert.de/marius/IP_bericht.git
+[submodule "IP_vortrag"]
+	path = IP_vortrag
+	url = https://git.nixfunktioniert.de/marius/IP_vortrag.git
