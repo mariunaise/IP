@@ -73,7 +73,11 @@ enrolled = bach.enroll(data, n, m, iterations, alpha, 0.84 * n)
 @time bach.enroll(data, n, m, iterations, alpha, 0.84 * n)
 
 # ╔═╡ 84456144-2d49-4e76-ab14-31f970837eaf
-plot(x=collect(map(comb -> comb.value, enrolled[1])), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
+begin 
+	bruteforce_dist = plot(x=collect(map(comb -> comb.value, enrolled[1])), Geom.histogram(bincount=1000), Guide.title("Sensible Apprpach"))
+	draw(SVG("../plots/bruteforce_dist.svg", 6inch, 4inch), bruteforce_dist)
+	bruteforce_dist
+end
 
 # ╔═╡ 1abc1bb5-eb93-406d-8781-161fe7216a37
 # Quantize values and plot their histogram:
@@ -170,9 +174,13 @@ for (i, dict) in enumerate(occurs)
 end
 
 # Create a bar plot with different colors for each source
-	plot(combined_data, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
+	bruteforce_helperdata1 = plot(combined_data, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
          Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
          Guide.title("Helper Data occurrences by quantized bits"))
+
+	draw(SVG("../plots/bruteforce_helperdata1.svg", 6inch, 4inch), bruteforce_helperdata1)
+	bruteforce_helperdata1
+
 end
 
 # ╔═╡ d7b973e7-cbcd-411e-9c3d-2cab4fa63326
@@ -392,7 +400,11 @@ end
 enrolled_higher_order = bach.enroll(data, n, 3, iterations, alpha, 3.2, solutions)[1]
 
 # ╔═╡ 184fa6e0-caa3-46bc-96b6-0ccaca7bd040
-plot(x=collect(map(comb -> comb.value, enrolled_higher_order)), Geom.histogram(bincount=1000), Guide.title("Brute-Force results"))
+begin
+	bruteforce_dist2 = plot(x=collect(map(comb -> comb.value, enrolled_higher_order)), Geom.histogram(bincount=1000), Guide.title("Brute-Force results"))
+	draw(SVG("../plots/bruteforce_dist2.svg", 6inch, 4inch), bruteforce_dist2)
+	bruteforce_dist2
+end
 
 # ╔═╡ ee3ee264-1a63-4e17-9830-916335154f65
 # Quantize values and plot their histogram:
@@ -435,9 +447,12 @@ for (i, dict) in enumerate(occurs_1)
 end
 
 # Create a bar plot with different colors for each source
-	plot(combined_data_1, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
+	bruteforce_helperdata2 =plot(combined_data_1, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
          Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
          Guide.title("Helper Data occurrences by quantized bits"))
+
+	draw(SVG("../plots/bruteforce_helperdata2.svg", 6inch, 4inch), bruteforce_helperdata2)
+	bruteforce_helperdata2
 end
 
 # ╔═╡ a0706de4-c63f-4105-a6da-c24144036e24
@@ -1437,7 +1452,7 @@ version = "17.4.0+2"
 # ╠═ee3ee264-1a63-4e17-9830-916335154f65
 # ╟─baf21f6a-f1ef-49d0-b1a8-6d6ec9e31b61
 # ╟─05a4f078-d94a-49e5-8bf6-2c0e54629e72
-# ╟─42c37a4f-fdcc-4d7c-8c48-db3124498ea7
+# ╠═42c37a4f-fdcc-4d7c-8c48-db3124498ea7
 # ╟─a0706de4-c63f-4105-a6da-c24144036e24
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

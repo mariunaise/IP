@@ -60,7 +60,11 @@ begin
 end
 
 # ╔═╡ 4bc97330-3667-48f0-a1c4-60a27019e7c9
-plot(x=collect(map(comb -> comb.value, optimized[1])), Geom.histogram(bincount=1000), Guide.title("Final result of recursive method"))
+begin
+recursive_plot = plot(x=collect(map(comb -> comb.value, optimized[1])), Geom.histogram(bincount=1000), Guide.title("Final result of recursive method"))
+draw(SVG("../plots/recursive_distribution.svg", 6inch, 4inch), recursive_plot)
+recursive_plot
+end
 
 # ╔═╡ 540fe07a-22b2-423d-a7da-8f7b53c8e41a
 # Quantize values and plot their histogram:
@@ -181,9 +185,12 @@ for (i, dict) in enumerate(occurs)
 end
 
 # Create a bar plot with different colors for each source
-	plot(combined_data, x=:BoolVector, y=:Count, color=:Source, Geom.bar, 
-         Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
-         Guide.title("Helper Data occurrences by quantized bits"))
+	recursive_helperdata_plot = plot(combined_data, x=:BoolVector, y=:Count, 				color=:Source, Geom.bar, 
+        	Guide.xlabel("Bool Vector"), Guide.ylabel("Count"), 
+    		Guide.title("Helper Data occurrences by quantized bits"))
+	draw(SVG("../plots/recursive_helperdata_dist.svg", 6inch, 4inch), recursive_helperdata_plot)
+
+	recursive_helperdata_plot
 end
 
 # ╔═╡ 6f0c6e4b-f00f-496e-80dd-219b88ef6aa7

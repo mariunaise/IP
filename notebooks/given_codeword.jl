@@ -53,7 +53,12 @@ filtered = filter(x -> typeof(x) != Nothing,enrolled)
 ratio = Base.length(filtered) / Base.length(enrolled)
 
 # ╔═╡ 939dee30-bfd5-4924-a38f-f27e665694ad
-plot(x=collect(map(comb -> comb.value, filtered)), Geom.histogram(bincount=1000), Guide.title("Final result of input value optimizaition"))
+begin
+	given_codeword = plot(x=collect(map(comb -> comb.value, filtered)), Geom.histogram(bincount=1000), Guide.title("Final result of input value optimizaition"))
+
+	draw(SVG("../plots/given_codeword_dist.svg", 6inch, 4inch), given_codeword)
+	given_codeword
+end
 
 # ╔═╡ 580e0609-7f14-4ee8-b8e9-e6400aa796cf
 uniform_values = cdf.(Normal(0, 1), data)
